@@ -117,4 +117,5 @@ In terminal run
 conda create -n aitk python=3.10
 conda activate aitk
 pip install -r requirements.txt
+pip install -e .
 ```
