@@ -128,6 +128,8 @@ pip install -e .
 
 ## Step 5: Setup AVD
 
+### 1. Download the AVD image
+
 Download the AVD image from [here](https://huggingface.co/datasets/Yuxiang007/A3V2-AVD-Image). Unzip the file and copy the `A3V2.avd` folder and `A3V2.ini` file to `~/.android/avd/` (on all OS). So it should be like this:
 
 ```shell
@@ -136,6 +138,14 @@ Download the AVD image from [here](https://huggingface.co/datasets/Yuxiang007/A3
 ├── A3V2.ini
 ```
 
-Then run `python scripts/init_avd.py` to initialize the AVD.
+### 2. Initialize the AVD
 
-Once the AVD is initialized and running, use your Google account to log in the Play Store (so that every Google app can be logged in) and then shut down the AVD by directly closing the AVD window or `Ctrl+C` in terminal. **Note that the correctly-executedtasks will not change anything in your account except for sending an email. However, if your agent misbehaves, something might happen. (hopefully nothing severe, don't blame me)**
+Run `python scripts/init_avd.py` to initialize the AVD.
+
+Once the AVD is initialized and running, do the following:
+
+1. use your Google account to log in the Play Store (so that every Google app can be logged in)
+2. Send an email to `stock_notify_01@163.com` to get an auto-reply email for the task execution. (your email can be anything, and it is only used for the auto-reply)
+3. shut down the AVD by directly closing the AVD window or `Ctrl+C` in terminal.
+
+**Note that the correctly-executed tasks will not change anything in your account except for sending an email. However, if your agent misbehaves, something might happen. (hopefully nothing severe, don't blame me)**
