@@ -8,7 +8,7 @@ Follow the instructions in [docs/setup.md](docs/setup.md) to install the emulato
 
 ## Usage
 
-### Start the AVD
+### 1. Start the AVD
 
 After the AVD is set up and Google account is logged in and the AVD is shut down, use the following command to start a new AVD for task execution:
 
@@ -18,11 +18,11 @@ python scripts/start_avd.py
 
 This will duplicate the initial AVD and all the tasks will be executed on the duplicated AVD, so that each time you test your agent, a same environment will be used.
 
-### Prepare the Agent
+### 2. Prepare the Agent
 
 Follow the instructions in [docs/translator.md](docs/translator.md) to prepare your agent model. Qwen2.5-VL is already supported as an example in `aitk/translators/qwen25_vl.py`.
 
-### Run the Agent
+### 3. Run the Agent
 
 ToDo
 
