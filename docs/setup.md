@@ -6,6 +6,7 @@
   - [For Windows](#for-windows)
 - [Step 3: Install Appium Driver](#step-3-install-appium-driver)
 - [Step 4: Install Appium client and other dependencies](#step-4-install-appium-client-and-other-dependencies)
+- [Step 5: Setup AVD](#step-5-setup-avd)
 
 ## Step 1: Install Android Studio
 
@@ -52,11 +53,12 @@ official website: [link](https://appium.io/docs/en/2.4/quickstart/install/)
   export ANDROID_HOME="/Users/<user>/Library/Android/sdk"
   ```
 
-- Add `platform-tools` and `build-tools` to the `PATH` environment variable. In Linux or Mac, add the following line to `~/.bashrc` or `~/.zshrc`:
+- Add `platform-tools`, `build-tools` and `emulator` to the `PATH` environment variable. In Linux or Mac, add the following line to `~/.bashrc` or `~/.zshrc`:
 
   ```shell
   export PATH=$PATH:$ANDROID_HOME/platform-tools
   export PATH=$PATH:$ANDROID_HOME/build-tools/34.0.0
+  export PATH=$PATH:$ANDROID_HOME/emulator
   ```
 
   For example, in Mac, add the following line to `~/.zshrc`:
@@ -64,6 +66,7 @@ official website: [link](https://appium.io/docs/en/2.4/quickstart/install/)
   ```shell
   export PATH=$PATH:/Users/<user>/Library/Android/sdk/platform-tools
   export PATH=$PATH:/Users/<user>/Library/Android/sdk/build-tools/34.0.0
+  export PATH=$PATH:/Users/<user>/Library/Android/sdk/emulator
   ```
 
 Linux example:
@@ -73,6 +76,7 @@ export ANDROID_HOME="/home/<user>/Android/Sdk/"
 export JAVA_HOME="/usr/lib/jvm/jdk-21-oracle-x64/"
 export "PATH=${PATH}:/home/<user>/Android/Sdk/build-tools/34.0.0/"
 export "PATH=${PATH}:/home/<user>/Android/Sdk/platform-tools/"
+export "PATH=${PATH}:/home/<user>/Android/Sdk/emulator"
 ```
 
 Mac example:
@@ -82,6 +86,7 @@ export ANDROID_HOME="/Users/<user>/Library/Android/sdk/"
 export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/"
 export "PATH=${PATH}:/Users/<user>/Library/Android/sdk/build-tools/34.0.0/"
 export "PATH=${PATH}:/Users/<user>/Library/Android/sdk/platform-tools/"
+export "PATH=${PATH}:/Users/<user>/Library/Android/sdk/emulator"
 ```
 
 ### For Windows
@@ -100,6 +105,7 @@ official website: [link](https://appium.io/docs/en/2.4/quickstart/install/)
 - Install JDK from [link](https://www.oracle.com/java/technologies/downloads/)
 - Add `JAVA_HOME` to the environment variable. Your can follow the guide from [link](https://windowsloop.com/add-environment-variable-in-windows-10/). The path should be something like `C:\Program Files\Java\jdk-21`
 - Add `ANDROID_HOME` to the environment variable. The path should be something like `C:\Users\<user>\AppData\Local\Android\Sdk`, which can be checked from Android Studio -> Settings -> SDK Manager.
+- Add `platform-tools`, `build-tools` and `emulator` to the environment variable. The path should be something like `C:\Users\<user>\AppData\Local\Android\Sdk\platform-tools`, `C:\Users\<user>\AppData\Local\Android\Sdk\build-tools\34.0.0` and `C:\Users\<user>\AppData\Local\Android\Sdk\emulator`.
 
 ## Step 3: Install Appium Driver
 
@@ -119,3 +125,17 @@ conda activate aitk
 pip install -r requirements.txt
 pip install -e .
 ```
+
+## Step 5: Setup AVD
+
+Download the AVD image from [here](https://huggingface.co/datasets/Yuxiang007/A3V2-AVD-Image). Unzip the file and copy the `A3V2.avd` folder and `A3V2.ini` file to `~/.android/avd/` (on all OS). So it should be like this:
+
+```shell
+~/.android/avd/
+├── A3V2.avd
+├── A3V2.ini
+```
+
+Then run `python scripts/init_avd.py` to initialize the AVD.
+
+Once the AVD is initialized and running, use your Google account to log in the Play Store (so that every Google app can be logged in) and then shut down the AVD by directly closing the AVD window or `Ctrl+C` in terminal. **Note that the correctly-executedtasks will not change anything in your account except for sending an email. However, if your agent misbehaves, something might happen. (hopefully nothing severe, don't blame me)**

@@ -2,6 +2,8 @@ __version__ = "0.1.0"
 
 
 import logging
+import platform
+import subprocess
 from pathlib import Path
 
 from openai import OpenAI
@@ -50,3 +52,25 @@ def answer_correct_judge(
         return True
     else:
         return False
+
+
+def install_app(apk_paths: list[Path | str], udid: str) -> None:
+    if len(apk_paths) == 1:
+        cmd = f"adb -s {udid} install {apk_paths[0].as_posix()}"
+    else:
+        cmd = f"adb -s {udid} install-multiple {' '.join([apk.as_posix() for apk in apk_paths])}"
+    e = subprocess.check_output(cmd, shell=True)
+    out = e.decode("utf-8")
+    print(out.replace("\n", " "))
+
+
+def get_os() -> str:
+    name = platform.system()
+    if name == "Darwin":
+        return "mac"
+    elif name == "Linux":
+        return "linux"
+    elif name == "Windows":
+        return "win"
+    else:
+        raise ValueError(f"Unsupported OS: {name}")
