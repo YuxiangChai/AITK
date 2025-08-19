@@ -52,7 +52,10 @@ class AVDManager:
             elif line.startswith("abi.type="):
                 lines[i] = f"abi.type={self.device_arch}\n"
             elif line.startswith("hw.cpu.arch="):
-                lines[i] = f"hw.cpu.arch=arm64\n"
+                if get_os() == "mac":
+                    lines[i] = f"hw.cpu.arch=arm64\n"
+                else:
+                    lines[i] = f"hw.cpu.arch=x86_64\n"
             elif line.startswith("image.sysdir.1="):
                 lines[i] = (
                     f"image.sysdir.1={Path('system-images') / 'android-35' / 'google_apis_playstore' / self.device_arch}\n"
