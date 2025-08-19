@@ -2,6 +2,15 @@
 
 Android Interactive Toolkit for Emulators. The package is designed to let the MLLM-based agents interact with the Android emulator, perform tasks, and save comprehensive trajectory data. The tasks can be easily customized by the users.
 
+## Contents
+
+- [Installation & Setup](#installation--setup)
+- [Usage](#usage)
+  - [1. Start the AVD](#1-start-the-avd)
+  - [2. Prepare the Agent](#2-prepare-the-agent)
+  - [3. Run the Agent](#3-run-the-agent)
+- [ToDo](#todo)
+
 ## Installation & Setup
 
 Follow the instructions in [docs/setup.md](docs/setup.md) to install the emulator and set up the environment. This may take a while but once it's done, no more modification is needed.
