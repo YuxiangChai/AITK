@@ -32,6 +32,11 @@ class AVDManager:
             / self.device_arch
         )
 
+    def _remove_lock_files(self, avd_name: str = "A3V2") -> None:
+        lock_files = self.avd_root_dir.glob(f"{avd_name}.avd/*.lock")
+        for lock_file in lock_files:
+            lock_file.unlink()
+
     def _modify_avd_ini_file(self, avd_name: str = "A3V2") -> None:
         avd_init = self.avd_root_dir / f"{avd_name}.ini"
         new_init_content = f"avd.ini.encoding=UTF-8\npath={self.avd_root_dir / f'{avd_name}.avd'}\npath.rel=avd/{avd_name}.avd\ntarget=android-35"
@@ -105,11 +110,13 @@ class AVDManager:
         aitk_logger.info(f"AVD hardware file '{avd_hardware}' modified.")
 
     def modify_origin_avd(self) -> None:
+        self._remove_lock_files()
         self._modify_avd_ini_file()
         self._modify_avd_config_ini_file()
         self._modify_hardware_qemu_ini_file()
 
     def duplicate_avd(self, new_avd_name: str = "A3V2_dup") -> None:
+        self._remove_lock_files(new_avd_name)
         shutil.copytree(
             self.avd_root_dir / "A3V2.avd", self.avd_root_dir / f"{new_avd_name}.avd"
         )
