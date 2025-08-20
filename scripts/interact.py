@@ -50,17 +50,16 @@ if __name__ == "__main__":
 
             if controller.step == 0:
                 aitk_logger.info(
-                    f"Task started: {task['name']} ----- {task['task']} -----"
+                    f"Task started: {task['name']} ----- {task['task']}\n---------------------------------------"
                 )
-            else:
-                aitk_logger.info(f"Step {controller.step}: ")
+            aitk_logger.info(f"Step {controller.step + 1}: ")
 
             state = controller.get_state()
             history = controller.get_history()
 
             # agent communication
             agent_response = translator.to_agent(task_str, state, history)
-            aitk_logger.info(f"Agent response: {agent_response}")
+            # aitk_logger.info(f"Agent response: {agent_response}")
             controller.save_history_agent_message(agent_response)
 
             # translate the agent response to action space in AITK
@@ -83,7 +82,8 @@ if __name__ == "__main__":
 
             time.sleep(1)
 
-            controller.save_state(state_save_dir)
+            if controller.step < max_steps:
+                controller.save_state(state_save_dir)
 
         if config["experiment"]["screen_record"]:
             controller.stop_save_record(save_dir)

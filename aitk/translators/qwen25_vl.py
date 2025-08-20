@@ -154,9 +154,12 @@ class Qwen25VLTranslator(BaseTranslator):
         image_stream = io.BytesIO(image)
         image = Image.open(image_stream)
         width, height = image.size
+        print(width, height)
         resize_factor = self.get_resize_factor(width, height, 602112)
         new_width, new_height = int(width * resize_factor), int(height * resize_factor)
+        print(new_width, new_height)
         image_resized = image.resize((new_width, new_height))
+        print(image_resized.size)
         buffer = io.BytesIO()
         image_resized.save(buffer, format="PNG")
         image_bytes = buffer.getvalue()
@@ -239,7 +242,7 @@ For each function call, return a json object with function name and arguments wi
         # screenshot = base64.b64encode(buffer).decode("utf-8")
         # ------------------------------SOM----------------------------#
 
-        history_actions = []
+        history_actions = history["actions"]
         for m in history["agent_messages"]:
             pattern = r"<tool_call>\s*(.*)\s*</tool_call>"
             match = re.search(pattern, m)
