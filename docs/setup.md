@@ -105,7 +105,7 @@ official website: [link](https://appium.io/docs/en/2.4/quickstart/install/)
 - Install JDK from [link](https://www.oracle.com/java/technologies/downloads/)
 - Add `JAVA_HOME` to the environment variable. Your can follow the guide from [link](https://windowsloop.com/add-environment-variable-in-windows-10/). The path should be something like `C:\Program Files\Java\jdk-21`
 - Add `ANDROID_HOME` to the environment variable. The path should be something like `C:\Users\<user>\AppData\Local\Android\Sdk`, which can be checked from Android Studio -> Settings -> SDK Manager.
-- Add `platform-tools`, `build-tools` and `emulator` to the environment variable. The path should be something like `C:\Users\<user>\AppData\Local\Android\Sdk\platform-tools`, `C:\Users\<user>\AppData\Local\Android\Sdk\build-tools\34.0.0` and `C:\Users\<user>\AppData\Local\Android\Sdk\emulator`.
+- Add `platform-tools`, `build-tools` and `emulator` to `Path`. The path should be something like `C:\Users\<user>\AppData\Local\Android\Sdk\platform-tools`, `C:\Users\<user>\AppData\Local\Android\Sdk\build-tools\34.0.0` and `C:\Users\<user>\AppData\Local\Android\Sdk\emulator`.
 
 ## Step 3: Install Appium Driver
 
