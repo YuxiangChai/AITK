@@ -25,7 +25,7 @@ After the AVD is set up and Google account is logged in and the AVD is shut down
 python scripts/start_avd.py
 ```
 
-This will duplicate the initial AVD and all the tasks will be executed on the duplicated AVD, so that each time you test your agent, a same environment will be used.
+This will duplicate the initial AVD and all the tasks will be executed on the duplicated AVD, so that each time you test your agent, the same environment will be used.
 
 ### 2. Prepare the Agent
 
@@ -33,7 +33,11 @@ Follow the instructions in [docs/translator.md](docs/translator.md) to prepare y
 
 ### 3. Run the Agent
 
-ToDo
+after the emulator finishes the boosting, run the following command to start testing and interaction.
+
+```bash
+python scripts/interact.py
+```
 
 ## ToDo
 

@@ -10,16 +10,14 @@ from aitk.utils.register import register_tasks, register_translator
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config", "-c", type=str, default="../configs/controller.yaml"
-    )
+    parser.add_argument("--config", "-c", type=str, default="configs/controller.yaml")
     args = parser.parse_args()
 
     with open(args.config, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     translator = register_translator(config["translator"])
-    tasks = register_tasks()
+    tasks = register_tasks(config["experiment"]["tasks"])
 
     save_root_dir = Path(config["experiment"]["save_root_dir"])
     save_root_dir = save_root_dir / config["experiment"]["name"]
@@ -51,7 +49,11 @@ if __name__ == "__main__":
                 break
 
             if controller.step == 0:
-                aitk_logger.info(f"Task started: {task['name']}")
+                aitk_logger.info(
+                    f"Task started: {task['name']} ----- {task['task']} -----"
+                )
+            else:
+                aitk_logger.info(f"Step {controller.step}: ")
 
             state = controller.get_state()
             history = controller.get_history()

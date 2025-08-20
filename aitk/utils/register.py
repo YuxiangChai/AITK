@@ -1,4 +1,5 @@
 import importlib
+import json
 from pathlib import Path
 
 from aitk.translators.base import BaseTranslator
@@ -30,7 +31,26 @@ def register_translator(translator_file: Path | str) -> BaseTranslator:
         )
 
 
-def register_tasks() -> list[dict]:
+def register_tasks(task_path: str) -> list[dict]:
+    """register tasks
+
+    Args:
+        task_path (str, optional): a jsonl file that contains the tasks.
+
+    Returns:
+        list[dict]: a list of tasks
+    """
+    return register_tasks_jsonl(task_path)
+
+
+def register_tasks_jsonl(file: str) -> list[dict]:
+    with open(file, "r") as f:
+        tasks = [json.loads(line) for line in f]
+
+    return tasks
+
+
+def register_tasks_py() -> list[dict]:
     """get the tasks
 
     Returns:

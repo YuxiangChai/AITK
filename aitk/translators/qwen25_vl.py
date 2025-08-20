@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import math
 import re
@@ -7,6 +8,8 @@ import cv2
 import numpy as np
 import pyshine as ps
 import requests
+from openai import OpenAI
+from PIL import Image
 
 from aitk.translators.base import BaseTranslator
 from aitk.utils.xml_processor import XMLCleaner
@@ -14,7 +17,10 @@ from aitk.utils.xml_processor import XMLCleaner
 
 class Qwen25VLTranslator(BaseTranslator):
     def __init__(self, sk: str = "empty") -> None:
-        self.url = "http://nluoss-ai.vivo.com.cn/qwen25vl"
+        self.client = OpenAI(
+            base_url="http://v-dev-busi1004-11179700-vllm-wl0101-vtraining.vmic.xyz/v1/",
+            api_key="empty",
+        )
 
     def get_resize_factor(self, width: int, height: int, maxpixel: int) -> float:
         if width * height > maxpixel:
@@ -43,7 +49,7 @@ class Qwen25VLTranslator(BaseTranslator):
         """
         action_str = re.search(r"<tool_call>\s*(.*)\s*</tool_call>", action)
         if not action_str:
-            return {"action": "end", "answer": ""}
+            return {"action": "end", "answer": "No format output"}
 
         resize_factor = self.get_resize_factor(width, height, 602112)
         action_str = action_str.group(1).strip()
@@ -51,33 +57,19 @@ class Qwen25VLTranslator(BaseTranslator):
             action_dict = json.loads(action_str)
             action_dict = action_dict["arguments"]
         except Exception as e:
-            return {"action": "end", "answer": ""}
+            return {"action": "end", "answer": f"{e}"}
 
         if action_dict.get("action") == "click":
-            if action_dict.get("som") is not None:
-                index = int(action_dict.get("som")) - 1
-                element = self.current_elements[index]
-                x1, y1, x2, y2 = element["bounds"]
-                x = (x1 + x2) // 2
-                y = (y1 + y2) // 2
-            else:
-                x, y = action_dict.get("coordinate", [None, None])
-                if x is None or y is None:
-                    return {"action": "end", "answer": ""}
-                x, y = int(x / resize_factor), int(y / resize_factor)
+            x, y = action_dict.get("coordinate", [None, None])
+            if x is None or y is None:
+                return {"action": "end", "answer": "Click not parsed"}
+            x, y = int(x / resize_factor), int(y / resize_factor)
             return {"action": "tap", "x": x, "y": y}
         elif action_dict.get("action") == "long_press":
-            if action_dict.get("som") is not None:
-                index = int(action_dict.get("som")) - 1
-                element = self.current_elements[index]
-                x1, y1, x2, y2 = element["bounds"]
-                x = (x1 + x2) // 2
-                y = (y1 + y2) // 2
-            else:
-                x, y = action_dict.get("coordinate", [None, None])
-                if x is None or y is None:
-                    return {"action": "end", "answer": ""}
-                x, y = int(x / resize_factor), int(y / resize_factor)
+            x, y = action_dict.get("coordinate", [None, None])
+            if x is None or y is None:
+                return {"action": "end", "answer": "Long Press not parsed"}
+            x, y = int(x / resize_factor), int(y / resize_factor)
             if action_dict.get("time") is not None:
                 time = action_dict.get("time")
             elif action_dict.get("duration") is not None:
@@ -109,7 +101,7 @@ class Qwen25VLTranslator(BaseTranslator):
                     x1, y1 = width // 5, height // 2
                     x2, y2 = width * 4 // 5, height // 2
             else:
-                return {"action": "end", "answer": ""}
+                return {"action": "end", "answer": "Swipe not parsed"}
             if action_dict.get("time") is not None:
                 time = action_dict.get("time")
             elif action_dict.get("duration") is not None:
@@ -125,8 +117,9 @@ class Qwen25VLTranslator(BaseTranslator):
                 "duration": time,
             }
         elif action_dict.get("action") == "type":
-            text = action_dict.get("text", "")
-            return {"action": "type", "text": text}
+            if "text" in action_dict:
+                return {"action": "type", "text": action_dict.get("text", "")}
+            return {"action": "end", "answer": "Type text not parsed"}
         elif action_dict.get("action") == "system_button":
             button = action_dict.get("button", "")
             if button == "Back":
@@ -135,9 +128,13 @@ class Qwen25VLTranslator(BaseTranslator):
                 return {"action": "home"}
             elif button == "Enter":
                 return {"action": "enter"}
+            else:
+                return {"action": "end", "answer": "System button not parsed"}
         elif action_dict.get("action") == "open":
-            app_name = action_dict.get("text", "")
-            return {"action": "open", "app": app_name.lower()}
+            if "text" in action_dict:
+                app_name = action_dict.get("text", "")
+                return {"action": "open", "app": app_name.lower()}
+            return {"action": "end", "answer": "Open app not parsed"}
         elif action_dict.get("action") == "wait":
             if action_dict.get("time") is not None:
                 time = action_dict.get("time")
@@ -149,6 +146,22 @@ class Qwen25VLTranslator(BaseTranslator):
         elif action_dict.get("action") == "terminate":
             status = action_dict.get("status", "")
             return {"action": "end", "answer": status}
+        else:
+            return {"action": "end", "answer": "unknown action"}
+
+    def resize(self, screenshot: base64) -> base64:
+        image = base64.b64decode(screenshot)
+        image_stream = io.BytesIO(image)
+        image = Image.open(image_stream)
+        width, height = image.size
+        resize_factor = self.get_resize_factor(width, height, 602112)
+        new_width, new_height = int(width * resize_factor), int(height * resize_factor)
+        image_resized = image.resize((new_width, new_height))
+        buffer = io.BytesIO()
+        image_resized.save(buffer, format="PNG")
+        image_bytes = buffer.getvalue()
+        base64_str = base64.b64encode(image_bytes).decode("utf-8")
+        return base64_str
 
     def to_agent(self, task: str, state: dict, history: dict) -> str:
         """Given the task, current state and the agent history, interact with the agent and get the output
@@ -170,40 +183,60 @@ class Qwen25VLTranslator(BaseTranslator):
         Returns:
             str: the output generated by the agent
         """
+        system_prompt = """
+You are a helpful assistant.
+
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {"name_for_human": "mobile_use", "name": "mobile_use", "description": "Use a touchscreen to interact with a mobile device, and take screenshots.\n* This is an interface to a mobile device with touchscreen. You can perform actions like clicking, typing, swiping, etc.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions.\n* The screen's resolution is 1092x2408.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.", "parameters": {"properties": {"action": {"description": "The action to perform. The available actions are:\n* `key`: Perform a key event on the mobile device.\n    - This supports adb's `keyevent` syntax.\n    - Examples: \"volume_up\", \"volume_down\", \"power\", \"camera\", \"clear\".\n* `click`: Click the point on the screen with coordinate (x, y).\n* `long_press`: Press the point on the screen with coordinate (x, y) for specified seconds.\n* `swipe`: Swipe from the starting point with coordinate (x, y) to the end point with coordinates2 (x2, y2).\n* `type`: Input the specified text into the activated input box.\n* `system_button`: Press the system button.\n* `open`: Open an app on the device.\n* `wait`: Wait specified seconds for the change to happen.\n* `terminate`: Terminate the current task and report its completion status.", "enum": ["key", "click", "long_press", "swipe", "type", "system_button", "open", "wait", "terminate"], "type": "string"}, "coordinate": {"description": "(x, y): The x (pixels from the left edge) and y (pixels from the top edge) coordinates to move the mouse to. Required only by `action=click`, `action=long_press`, and `action=swipe`.", "type": "array"}, "coordinate2": {"description": "(x, y): The x (pixels from the left edge) and y (pixels from the top edge) coordinates to move the mouse to. Required only by `action=swipe`.", "type": "array"}, "text": {"description": "Required only by `action=key`, `action=type`, and `action=open`.", "type": "string"}, "time": {"description": "The seconds to wait. Required only by `action=long_press` and `action=wait`.", "type": "number"}, "button": {"description": "Back means returning to the previous interface, Home means returning to the desktop, Menu means opening the application background menu, and Enter means pressing the enter. Required only by `action=system_button`", "enum": ["Back", "Home", "Menu", "Enter"], "type": "string"}, "status": {"description": "The status of the task. Required only by `action=terminate`.", "type": "string", "enum": ["success", "failure"]}}, "required": ["action"], "type": "object"}, "args_format": "Format the arguments as a JSON object."}}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call>
+"""
+
         screenshot = state["screenshot"]
 
-        # ------------------------------SOM----------------------------#
-        xml = state["xml"]
-        xml_cleaner = XMLCleaner(xml)
-        elements = xml_cleaner.get_final_elements()
-        self.current_elements = elements
+        screenshot = self.resize(screenshot)
 
-        # Decode base64 to numpy array
-        img_bytes = base64.b64decode(screenshot)
-        img_array = np.frombuffer(img_bytes, dtype=np.uint8)
-        imgcv = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-        for i, element in enumerate(elements):
-            try:
-                x1, y1, x2, y2 = element["bounds"]
-                label = i + 1
-                color = (250, 0, 0)
-                imgcv = ps.putBText(
-                    imgcv,
-                    label,
-                    text_offset_x=(x1 + x2) // 2 + 10,
-                    text_offset_y=(y1 + y2) // 2 + 10,
-                    vspace=10,
-                    hspace=10,
-                    font_scale=1,
-                    thickness=2,
-                    background_RGB=color,
-                    text_RGB=(255, 250, 250),
-                    alpha=0.5,
-                )
-            except Exception as e:
-                pass
-        _, buffer = cv2.imencode(".png", imgcv)
-        screenshot = base64.b64encode(buffer).decode("utf-8")
+        # ------------------------------SOM----------------------------#
+        # xml = state["xml"]
+        # xml_cleaner = XMLCleaner(xml)
+        # elements = xml_cleaner.get_final_elements()
+        # self.current_elements = elements
+
+        # # Decode base64 to numpy array
+        # img_bytes = base64.b64decode(screenshot)
+        # img_array = np.frombuffer(img_bytes, dtype=np.uint8)
+        # imgcv = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        # for i, element in enumerate(elements):
+        #     try:
+        #         x1, y1, x2, y2 = element["bounds"]
+        #         label = i + 1
+        #         color = (250, 0, 0)
+        #         imgcv = ps.putBText(
+        #             imgcv,
+        #             label,
+        #             text_offset_x=(x1 + x2) // 2 + 10,
+        #             text_offset_y=(y1 + y2) // 2 + 10,
+        #             vspace=10,
+        #             hspace=10,
+        #             font_scale=1,
+        #             thickness=2,
+        #             background_RGB=color,
+        #             text_RGB=(255, 250, 250),
+        #             alpha=0.5,
+        #         )
+        #     except Exception as e:
+        #         pass
+        # _, buffer = cv2.imencode(".png", imgcv)
+        # screenshot = base64.b64encode(buffer).decode("utf-8")
         # ------------------------------SOM----------------------------#
 
         history_actions = []
@@ -217,27 +250,34 @@ class Qwen25VLTranslator(BaseTranslator):
             try:
                 dic = json.loads(m_str)
                 action = dic["arguments"]
-                history_actions.append(action["action_desc"])
+                # history_actions.append(action["action_desc"])
             except Exception as e:
                 history_actions.append(m_str)
 
         action_history_str = []
         for i, action in enumerate(history_actions):
             action_history_str.append(f"Step{i+1}: {action}")
-        action_history_str = "\n".join(action_history_str)
+        action_history_str = ", ".join(action_history_str)
 
         user_prompt = f"The user query:  {task}\nTask progress (You have done the following operation on the current device): {action_history_str};"
 
-        request_data = {"query": user_prompt, "images": [screenshot]}
-
-        response = requests.post(
-            self.url,
-            json=request_data,
-            headers={"Content-Type": "application/json"},
+        response = self.client.chat.completions.create(
+            model="qwen2.5-vl",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image;base64,{screenshot}"},
+                        },
+                    ],
+                },
+            ],
         )
-        response_data = json.loads(response.text)
-        response_str = response_data["result"]
-
+        response_str = response.choices[0].message.content
         return response_str
 
 
