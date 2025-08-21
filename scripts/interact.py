@@ -19,8 +19,16 @@ if __name__ == "__main__":
     translator = register_translator(config["translator"], config["translator_args"])
     tasks = register_tasks(config["experiment"]["tasks"])
 
-    save_root_dir = Path(config["experiment"]["save_root_dir"])
-    save_root_dir = save_root_dir / config["experiment"]["name"]
+    if config["experiment"]["resume_exp"]:
+        resume_dir = Path(config["experiment"]["resume_exp"])
+        existing_tasks = []
+        for task_dir in resume_dir.iterdir():
+            if (task_dir / "history.json").exists():
+                existing_tasks.append(task_dir.name)
+        save_root_dir = resume_dir
+    else:
+        save_root_dir = Path(config["experiment"]["save_root_dir"])
+        save_root_dir = save_root_dir / config["experiment"]["name"]
     check_create_dir(save_root_dir)
 
     device_udid = config["device"]["udid"]
@@ -28,6 +36,11 @@ if __name__ == "__main__":
     controller = Controller(config, appium_port, device_udid)
 
     for task in tasks:
+        task_name = task["name"]
+        if task_name in existing_tasks:
+            aitk_logger.info(f"Task {task_name} already exists, skipping...")
+            continue
+
         task_str = task["task"]  # task description
         save_dir = save_root_dir / task["name"]  # task file name
         check_create_dir(save_dir)
