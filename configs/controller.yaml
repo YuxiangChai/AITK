@@ -3,6 +3,8 @@ device:
   appium_port: 4723
 
 translator: qwen25_vl # the translator to use for the task execution (the file name of the translator file in the aitk/translators directory)
+translator_args:
+  max_pixels: 784000
 
 experiment:
   name: qwen25vl_test

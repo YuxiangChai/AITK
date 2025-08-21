@@ -16,7 +16,7 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-    translator = register_translator(config["translator"])
+    translator = register_translator(config["translator"], config["translator_args"])
     tasks = register_tasks(config["experiment"]["tasks"])
 
     save_root_dir = Path(config["experiment"]["save_root_dir"])

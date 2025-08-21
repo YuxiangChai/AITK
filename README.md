@@ -33,7 +33,13 @@ Follow the instructions in [docs/translator.md](docs/translator.md) to prepare y
 
 ### 3. Run the Agent
 
-after the emulator finishes the boosting, run the following command to start testing and interaction.
+After the emulator finishes the boosting, first start Appium service in one terminal:
+
+```bash
+appium
+```
+
+Then run the following command in another terminal to start testing and interaction.
 
 ```bash
 python scripts/interact.py

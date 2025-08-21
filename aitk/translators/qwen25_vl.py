@@ -18,7 +18,7 @@ from aitk.utils.xml_processor import XMLCleaner
 class Qwen25VLTranslator(BaseTranslator):
     def __init__(self, max_pixels: int = 2665600) -> None:
         self.client = OpenAI(
-            base_url="http://v-dev-busi1004-11179700-vllm-wl0101-vtraining.vmic.xyz/v1/",
+            base_url="http://v-dev-research-11179700-vllm1-wl0101-vtraining.vmic.xyz/v1/",
             api_key="empty",
         )
         self.max_pixels = max_pixels
@@ -155,12 +155,9 @@ class Qwen25VLTranslator(BaseTranslator):
         image_stream = io.BytesIO(image)
         image = Image.open(image_stream)
         width, height = image.size
-        print(width, height)
         resize_factor = self.get_resize_factor(width, height)
         new_width, new_height = int(width * resize_factor), int(height * resize_factor)
-        print(new_width, new_height)
         image_resized = image.resize((new_width, new_height))
-        print(image_resized.size)
         buffer = io.BytesIO()
         image_resized.save(buffer, format="PNG")
         image_bytes = buffer.getvalue()
@@ -207,7 +204,7 @@ For each function call, return a json object with function name and arguments wi
 
         screenshot = state["screenshot"]
 
-        # screenshot = self.resize(screenshot)
+        screenshot = self.resize(screenshot)
 
         # ------------------------------SOM----------------------------#
         # xml = state["xml"]
@@ -285,5 +282,5 @@ For each function call, return a json object with function name and arguments wi
         return response_str
 
 
-def register() -> Qwen25VLTranslator:
-    return Qwen25VLTranslator()
+def register(kargs: dict) -> Qwen25VLTranslator:
+    return Qwen25VLTranslator(**kargs)

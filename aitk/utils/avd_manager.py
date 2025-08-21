@@ -116,7 +116,7 @@ class AVDManager:
         self._modify_hardware_qemu_ini_file()
 
     def duplicate_avd(self, new_avd_name: str = "A3V2_dup") -> None:
-        self._remove_lock_files(new_avd_name)
+        # self._remove_lock_files(new_avd_name)
         shutil.copytree(
             self.avd_root_dir / "A3V2.avd",
             self.avd_root_dir / f"{new_avd_name}.avd",

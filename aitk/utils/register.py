@@ -5,11 +5,14 @@ from pathlib import Path
 from aitk.translators.base import BaseTranslator
 
 
-def register_translator(translator_file: Path | str) -> BaseTranslator:
+def register_translator(
+    translator_file: Path | str, translator_args: dict
+) -> BaseTranslator:
     """get the translator object from the translator file
 
     Args:
         translator_file (Path | str): the path to the translator file
+        translator_args (dict): the arguments for the translator
 
     Raises:
         AttributeError: The translator file does not have register method
@@ -23,7 +26,7 @@ def register_translator(translator_file: Path | str) -> BaseTranslator:
     translator_module = f"aitk.translators.{translator_file.stem}"
     module = importlib.import_module(translator_module)
     if hasattr(module, "register"):
-        cls = module.register()
+        cls = module.register(translator_args)
         return cls
     else:
         raise AttributeError(
