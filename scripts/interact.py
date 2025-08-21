@@ -123,10 +123,11 @@ if __name__ == "__main__":
             aitk_logger.error(f"Task save failed: {e}")
 
         aitk_logger.info(f"Task finished: {task['name']}")
-        aitk_logger.info(f"Turn off the emulator...")
 
-        subprocess.Popen(
-            ["adb", "-e", "emu", "kill"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+    aitk_logger.info(f"Turn off the emulator...")
+
+    subprocess.Popen(
+        ["adb", "-e", "emu", "kill"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
