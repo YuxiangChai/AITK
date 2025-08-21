@@ -8,16 +8,30 @@ from aitk import aitk_logger, check_create_dir
 from aitk.utils.controller import Controller
 from aitk.utils.register import register_tasks, register_translator
 
-if __name__ == "__main__":
+
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", "-c", type=str, default="configs/controller.yaml")
+    parser.add_argument("--experiment-name", "-e", type=str)
+    parser.add_argument("--resume-exp", "-r", type=str)
     args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = get_args()
 
     with open(args.config, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     translator = register_translator(config["translator"], config["translator_args"])
     tasks = register_tasks(config["experiment"]["tasks"])
+
+    if args.experiment_name:
+        config["experiment"]["name"] = args.experiment_name
+
+    if args.resume_exp:
+        config["experiment"]["resume_exp"] = args.resume_exp
 
     if config["experiment"]["resume_exp"]:
         resume_dir = Path(config["experiment"]["resume_exp"])

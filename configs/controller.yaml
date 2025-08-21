@@ -9,7 +9,7 @@ translator_args:
 experiment:
   name: qwen25vl_test
   save_root_dir: saves/
-  tasks: D:\Documents\AITK\aitk\tasks\tasks.jsonl # use the task jsonl file
+  tasks: aitk/tasks/tasks.jsonl # use the task jsonl file
   screen_record: false # whether to record the process of the task execution
   record_resolution: [1080, 1920] # the resolution of the screen recording in pixels if screen_record is on
-  resume_exp: null # the absolute path of the experiment folder to resume from
+  resume_exp: null # the path of the experiment folder to resume from
