@@ -50,7 +50,17 @@ def register_tasks_jsonl(file: str) -> list[dict]:
     with open(file, "r") as f:
         tasks = [json.loads(line) for line in f]
 
-    return tasks
+    app_info = {}
+    for task in tasks:
+        if task["app"] not in app_info:
+            app_info[task["app"]] = task["app_package"]
+        else:
+            if app_info[task["app"]] != task["app_package"]:
+                raise ValueError(
+                    f"Task {task['name']} has different app package: {task['app_package']} != {app_info[task['app']]}"
+                )
+
+    return tasks, app_info
 
 
 def register_tasks_py() -> list[dict]:

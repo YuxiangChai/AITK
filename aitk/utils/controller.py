@@ -20,6 +20,7 @@ class Controller:
         config: dict,
         appium_port: int = 4723,
         udid: str = None,
+        app_info: dict = None,
     ) -> None:
         self.capabilities = dict(
             platformName="Android",
@@ -40,6 +41,8 @@ class Controller:
             options=UiAutomator2Options().load_capabilities(self.capabilities),
         )
         self.driver.implicitly_wait(2)
+
+        self.app_info = app_info
 
         wh = self.driver.get_window_size()
         self.w = wh["width"]
@@ -86,10 +89,13 @@ class Controller:
                 stderr=subprocess.DEVNULL,  # Suppress stderr
             )
         else:
-            try:
-                self.driver.activate_app(app.lower())
-            except KeyError as e:
-                self.logger.log(logging.INFO, e)
+            for key, value in self.app_info.items():
+                if key.lower() in app.lower():
+                    app_package = value
+                    break
+            if app_package:
+                self.driver.activate_app(app_package)
+            else:
                 self.logger.log(logging.INFO, f"App {app} not found.")
 
     def _tap(self, x: int, y: int) -> None:

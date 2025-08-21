@@ -25,7 +25,7 @@ if __name__ == "__main__":
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     translator = register_translator(config["translator"], config["translator_args"])
-    tasks = register_tasks(config["experiment"]["tasks"])
+    tasks, app_info = register_tasks(config["experiment"]["tasks"])
 
     if args.experiment_name:
         config["experiment"]["name"] = args.experiment_name
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     device_udid = config["device"]["udid"]
     appium_port = config["device"]["appium_port"]
-    controller = Controller(config, appium_port, device_udid)
+    controller = Controller(config, appium_port, device_udid, app_info)
 
     for task in tasks:
         task_name = task["name"]
