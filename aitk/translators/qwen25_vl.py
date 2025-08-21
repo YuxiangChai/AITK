@@ -16,15 +16,16 @@ from aitk.utils.xml_processor import XMLCleaner
 
 
 class Qwen25VLTranslator(BaseTranslator):
-    def __init__(self, sk: str = "empty") -> None:
+    def __init__(self, max_pixels: int = 2665600) -> None:
         self.client = OpenAI(
             base_url="http://v-dev-busi1004-11179700-vllm-wl0101-vtraining.vmic.xyz/v1/",
             api_key="empty",
         )
+        self.max_pixels = max_pixels
 
-    def get_resize_factor(self, width: int, height: int, maxpixel: int) -> float:
-        if width * height > maxpixel:
-            return math.sqrt(maxpixel / (width * height))
+    def get_resize_factor(self, width: int, height: int) -> float:
+        if width * height > self.max_pixels:
+            return math.sqrt(self.max_pixels / (width * height))
         else:
             return 1.0
 
@@ -51,7 +52,7 @@ class Qwen25VLTranslator(BaseTranslator):
         if not action_str:
             return {"action": "end", "answer": "No format output"}
 
-        resize_factor = self.get_resize_factor(width, height, 602112)
+        resize_factor = self.get_resize_factor(width, height)
         action_str = action_str.group(1).strip()
         try:
             action_dict = json.loads(action_str)
@@ -155,7 +156,7 @@ class Qwen25VLTranslator(BaseTranslator):
         image = Image.open(image_stream)
         width, height = image.size
         print(width, height)
-        resize_factor = self.get_resize_factor(width, height, 602112)
+        resize_factor = self.get_resize_factor(width, height)
         new_width, new_height = int(width * resize_factor), int(height * resize_factor)
         print(new_width, new_height)
         image_resized = image.resize((new_width, new_height))
@@ -206,7 +207,7 @@ For each function call, return a json object with function name and arguments wi
 
         screenshot = state["screenshot"]
 
-        screenshot = self.resize(screenshot)
+        # screenshot = self.resize(screenshot)
 
         # ------------------------------SOM----------------------------#
         # xml = state["xml"]
@@ -242,7 +243,7 @@ For each function call, return a json object with function name and arguments wi
         # screenshot = base64.b64encode(buffer).decode("utf-8")
         # ------------------------------SOM----------------------------#
 
-        history_actions = history["actions"]
+        history_actions = []
         for m in history["agent_messages"]:
             pattern = r"<tool_call>\s*(.*)\s*</tool_call>"
             match = re.search(pattern, m)
@@ -253,7 +254,7 @@ For each function call, return a json object with function name and arguments wi
             try:
                 dic = json.loads(m_str)
                 action = dic["arguments"]
-                # history_actions.append(action["action_desc"])
+                history_actions.append(action)
             except Exception as e:
                 history_actions.append(m_str)
 
@@ -262,7 +263,7 @@ For each function call, return a json object with function name and arguments wi
             action_history_str.append(f"Step{i+1}: {action}")
         action_history_str = ", ".join(action_history_str)
 
-        user_prompt = f"The user query:  {task}\nTask progress (You have done the following operation on the current device): {action_history_str};"
+        user_prompt = f"The user query:  {task}\nTask progress (You have done the following operation on the current device): {action_history_str}; <image>"
 
         response = self.client.chat.completions.create(
             model="qwen2.5-vl",
