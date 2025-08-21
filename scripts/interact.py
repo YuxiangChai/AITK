@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 import time
 from pathlib import Path
 
@@ -33,9 +34,9 @@ if __name__ == "__main__":
     if args.resume_exp:
         config["experiment"]["resume_exp"] = args.resume_exp
 
+    existing_tasks = []
     if config["experiment"]["resume_exp"]:
         resume_dir = Path(config["experiment"]["resume_exp"])
-        existing_tasks = []
         for task_dir in resume_dir.iterdir():
             if (task_dir / "history.json").exists():
                 existing_tasks.append(task_dir.name)
@@ -122,3 +123,10 @@ if __name__ == "__main__":
             aitk_logger.error(f"Task save failed: {e}")
 
         aitk_logger.info(f"Task finished: {task['name']}")
+        aitk_logger.info(f"Turn off the emulator...")
+
+        subprocess.Popen(
+            ["adb", "-e", "emu", "kill"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )

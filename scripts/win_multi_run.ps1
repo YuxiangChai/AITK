@@ -11,6 +11,8 @@ Param(
 for ($i = $Start; $i -le $End; $i++) {
     $idx = "{0:D2}" -f $i
     Write-Host "Running experiment qwen25vl_test_$idx"
+    python scripts/start_avd.py
+    Start-Sleep -Seconds 60
     python scripts/interact.py --experiment-name "qwen25vl_test_$idx"
     Start-Sleep -Seconds 60
 }

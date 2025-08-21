@@ -11,6 +11,8 @@ END=${2:-10}
 for (( i=START; i<=END; i++ )); do
 	idx=$(printf "%02d" "$i")
 	echo "Running experiment qwen25vl_test_${idx}"
+    python scripts/start_avd.py
+    sleep 60
 	python scripts/interact.py --experiment-name "qwen25vl_test_${idx}"
 	sleep 60
 done
