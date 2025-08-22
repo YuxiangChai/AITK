@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -19,9 +20,16 @@ class ADBController:
     ) -> None:
         self.app_info = app_info
 
-        wh = self.driver.get_window_size()
-        self.w = wh["width"]
-        self.h = wh["height"]
+        tem_cmd = ["adb", "shell", "wm", "size"]
+        result = subprocess.run(tem_cmd, capture_output=True, text=True, check=True)
+        result = result.stdout
+        pattern = r"(\d+)x(\d+)"
+        match = re.search(pattern, result)
+        if match:
+            self.w = int(match.group(1).strip())
+            self.h = int(match.group(2).strip())
+        else:
+            raise ValueError("Failed to get screen size")
 
         self.history = {
             "xmls": [],
