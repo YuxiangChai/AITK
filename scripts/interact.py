@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 
 from aitk import aitk_logger, check_create_dir
+from aitk.utils.adb_controller import ADBController
 from aitk.utils.controller import Controller
 from aitk.utils.register import register_tasks, register_translator
 
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 
     device_udid = config["device"]["udid"]
     appium_port = config["device"]["appium_port"]
-    controller = Controller(config, appium_port, device_udid, app_info)
+    controller = ADBController(config, app_info)
 
     for task in tasks:
         task_name = task["name"]
