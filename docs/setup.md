@@ -65,7 +65,7 @@ Once the AVD is initialized and running, do the following:
 **Note that the correctly-executed tasks will not change anything in your account except for sending an email. However, if your agent misbehaves, something might happen. (hopefully nothing severe, don't blame me)**
 
 <details>
-<summary><strong>Appium Setup (Optional)</strong></summary>
+<summary><h2>Appium Setup (Optional)</h2></summary>
 
 Appium is only required for screen recording and customization.
 
