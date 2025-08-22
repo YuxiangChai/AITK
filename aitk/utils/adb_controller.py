@@ -66,8 +66,8 @@ class ADBController:
         """
         cmd = ["adb", "exec-out", "screencap -p"]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            png_data = base64.b64encode(result.stdout.encode("utf-8")).decode("utf-8")
+            result = subprocess.run(cmd, capture_output=True, check=True)
+            png_data = base64.b64encode(result.stdout).decode("utf-8")
             return png_data
         except subprocess.CalledProcessError as e:
             self.logger.log(logging.ERROR, f"Failed to get screenshot: {e}")
