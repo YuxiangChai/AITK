@@ -4,8 +4,6 @@ Android Interactive Toolkit for Emulators. This repository is originally develop
 
 To evaluate the performance of the agent (such as [A3](https://arxiv.org/abs/2501.01149)), we provide another package [M-Evaluator](https://github.com/YuxiangChai/M-Evaluator), which is a comprehensive and easy-use MLLM-based evaluation system. It includes several MLLM-based evaluation methods (MLLM-as-a-judge) and is designed to be used with any data format.
 
-We also mention in the paper that we collect the positive trajectory data for A3RM model training by human annotators. Here is [M-Annotator](https://github.com/YuxiangChai/M-Annotator), which is a tool for human to annotate the trajectory data.
-
 ## Contents
 
 - [Installation & Setup](#installation--setup)
