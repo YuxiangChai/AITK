@@ -1,8 +1,10 @@
 # AITK
 
-Android Interactive Toolkit for Emulators. This package is lightweight and designed to let any MLLM-based agent interact with the Android emulator (AVD), perform tasks, and save comprehensive trajectory data. The tasks can be easily customized by the users. This package can be used to test the agent and collect the trajectory data.
+Android Interactive Toolkit for Emulators. This repository is originally developed for the paper [A3](https://arxiv.org/abs/2501.01149). It is lightweight and designed to let any MLLM-based agent interact with the Android emulator (AVD), perform tasks, and save comprehensive trajectory data. It is used to test agents and collect trajectory data. Since it is extremely flexible and extensible, we decided to release it as a data collection and testing tool for the community. We provide an AVD image for A3 evaluation, however, you can use this repo to create your own AVD image and test your agents.
 
 To evaluate the performance of the agent (such as [A3](https://arxiv.org/abs/2501.01149)), we provide another package [M-Evaluator](https://github.com/YuxiangChai/M-Evaluator), which is a comprehensive and easy-use MLLM-based evaluation system. It includes several MLLM-based evaluation methods (MLLM-as-a-judge) and is designed to be used with any data format.
+
+We also mention in the paper that we collect the positive trajectory data for A3RM model training by human annotators. Here is [M-Annotator](https://github.com/YuxiangChai/M-Annotator), which is a tool for human to annotate the trajectory data.
 
 ## Contents
 
