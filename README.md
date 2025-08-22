@@ -46,7 +46,7 @@ For Windows:
 ```
 
 <details>
-<summary><h3>Step 3. Advanced Usage (Step 2 breakdown and more features)</h3></summary>
+<summary><h3>Step 4. Advanced Usage (Step 3 breakdown and more features)</h3></summary>
 
 #### 1. Start the AVD (duplicated AVD)
 
