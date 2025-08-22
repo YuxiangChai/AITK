@@ -109,21 +109,22 @@ class AVDManager:
             f.writelines(lines)
         aitk_logger.info(f"AVD hardware file '{avd_hardware}' modified.")
 
-    def modify_origin_avd(self) -> None:
-        self._remove_lock_files()
-        self._modify_avd_ini_file()
-        self._modify_avd_config_ini_file()
-        self._modify_hardware_qemu_ini_file()
+    def modify_origin_avd(self, avd_name: str = "A3V2") -> None:
+        self._remove_lock_files(avd_name)
+        self._modify_avd_ini_file(avd_name)
+        self._modify_avd_config_ini_file(avd_name)
+        self._modify_hardware_qemu_ini_file(avd_name)
 
-    def duplicate_avd(self, new_avd_name: str = "A3V2_dup") -> None:
-        # self._remove_lock_files(new_avd_name)
+    def duplicate_avd(self, avd_name: str = "A3V2") -> None:
+        new_avd_name = f"{avd_name}_dup"
         shutil.copytree(
-            self.avd_root_dir / "A3V2.avd",
+            self.avd_root_dir / f"{avd_name}.avd",
             self.avd_root_dir / f"{new_avd_name}.avd",
             dirs_exist_ok=True,
         )
         shutil.copy(
-            self.avd_root_dir / "A3V2.ini", self.avd_root_dir / f"{new_avd_name}.ini"
+            self.avd_root_dir / f"{avd_name}.ini",
+            self.avd_root_dir / f"{new_avd_name}.ini",
         )
         self._modify_avd_ini_file(new_avd_name)
         self._modify_avd_config_ini_file(new_avd_name)

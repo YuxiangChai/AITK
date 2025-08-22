@@ -90,6 +90,23 @@ For Windows:
 
 </details>
 
+## Customize AVD
+
+- create a new AVD through Android Studio
+- run the following command to initialize the AVD, and you can customize the AVD as you wish.
+  ```shell
+  python scripts/init_avd.py -a <avd-name>
+  ```
+- after your AVD is setp up, close it and this will be the base AVD. All tests will be executed on a duplicated AVD to keep the base AVD clean.
+- run the following command to run a duplicated AVD
+  ```shell
+  python scripts/start_avd.py -a <avd-name>
+  ```
+- you can test your agent on the duplicated AVD by running the following command
+  ```shell
+  python scripts/interact.py -c <config-file> -e <experiment-name>
+  ```
+
 ## Task Customization
 
 You can follow the instructions in [docs/task.md](docs/task.md) to customize the tasks.
