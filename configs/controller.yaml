@@ -1,15 +1,16 @@
 device:
   udid: emulator-5554 # 127.0.0.1:6555 is the default udid for Genymotion. emulator-5554 is the default udid for Android Virtual Device
-  appium_port: 4723
 
 translator: qwen25_vl # the translator to use for the task execution (the file name of the translator file in the aitk/translators directory)
 translator_args:
-  max_pixels: 784000
+  # max_pixels: 784000
+  max_pixels: 2665000
 
 experiment:
   name: qwen25vl_test
   save_root_dir: saves/
   tasks: aitk/tasks/tasks.jsonl # use the task jsonl file
-  screen_record: false # whether to record the process of the task execution
+  backend: adb # select from adb or appium
+  screen_record: false # whether to record the process of the task execution, only support Appium as backend. ADB doesn't support this feature
   record_resolution: [1080, 1920] # the resolution of the screen recording in pixels if screen_record is on
   resume_exp: null # the path of the experiment folder to resume from

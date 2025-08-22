@@ -7,7 +7,7 @@ import yaml
 
 from aitk import aitk_logger, check_create_dir
 from aitk.utils.adb_controller import ADBController
-from aitk.utils.controller import Controller
+from aitk.utils.appium_controller import AppiumController
 from aitk.utils.register import register_tasks, register_translator
 
 
@@ -48,8 +48,14 @@ if __name__ == "__main__":
     check_create_dir(save_root_dir)
 
     device_udid = config["device"]["udid"]
-    appium_port = config["device"]["appium_port"]
-    controller = ADBController(config, app_info)
+    if config["experiment"]["backend"] == "adb":
+        controller = ADBController(config, app_info)
+    elif config["experiment"]["backend"] == "appium":
+        if "appium_port" in config["device"]:
+            appium_port = config["device"]["appium_port"]
+        else:
+            appium_port = 4723
+        controller = AppiumController(config, device_udid, app_info, appium_port)
 
     for task in tasks:
         task_name = task["name"]
@@ -71,6 +77,9 @@ if __name__ == "__main__":
         controller.save_state(state_save_dir)  # save the initial state
 
         if config["experiment"]["screen_record"]:
+            assert (
+                config["experiment"]["backend"] == "appium"
+            ), "Screen recording only support Appium as backend. ADB doesn't support yet."
             controller.start_record(config["experiment"]["record_resolution"])
 
         while True:
@@ -81,7 +90,7 @@ if __name__ == "__main__":
                 aitk_logger.info(
                     f"Task started: {task['name']} ----- {task['task']}\n---------------------------------------"
                 )
-            aitk_logger.info(f"Step {controller.step + 1}: ")
+            aitk_logger.info(f"Step {controller.step}: ")
 
             state = controller.get_state()
             history = controller.get_history()

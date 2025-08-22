@@ -9,7 +9,7 @@ from pathlib import Path
 import dill
 
 from aitk import aitk_logger, check_create_dir, get_os
-from aitk.utils.keycode import KEYCODE
+from aitk.utils.keycode import KEYCODE, LETTER_KEYCODE, SPECIAL_CODE
 
 
 class ADBController:
@@ -21,7 +21,9 @@ class ADBController:
         self.app_info = app_info
 
         tem_cmd = ["adb", "shell", "wm", "size"]
-        result = subprocess.run(tem_cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            tem_cmd, capture_output=True, text=True, check=True, encoding="utf-8"
+        )
         result = result.stdout
         pattern = r"(\d+)x(\d+)"
         match = re.search(pattern, result)
@@ -52,7 +54,9 @@ class ADBController:
         """
         cmd = ["adb", "exec-out", "uiautomator dump /dev/stdout"]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=True, encoding="utf-8"
+            )
             return result.stdout
         except subprocess.CalledProcessError as e:
             self.logger.log(logging.ERROR, f"Failed to get XML: {e}")
@@ -65,24 +69,37 @@ class ADBController:
         Returns:
             str: the current package name
         """
-        if get_os() == "win":
-            cmd = ["adb", "shell", "dumpsys activity top | findstr ACTIVITY"]
-        else:
-            cmd = ["adb", "shell", "dumpsys activity top | grep ACTIVITY"]
+        cmd = [
+            "adb",
+            "shell",
+            "dumpsys",
+            "activity",
+            "top",
+            "|",
+            "grep",
+            "ACTIVITY",
+        ]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=True, encoding="utf-8"
+            )
             output = result.stdout.strip()
-            activities = output.split("\n")
+            activities = output.split("ACTIVITY")
+            if len(activities) == 2:
+                return "com.google.android.apps.nexuslauncher", ".NexusLauncherActivity"
             for activity in activities:
-                if "nexus" in activity.lower():
+                if "nexus" in activity.lower() or activity == "":
                     continue
-
-                package_activity_str = activity.strip().split(" ")[1]
+                package_activity_str = activity.strip().split(" ")[0]
                 package, activity = package_activity_str.split("/")
                 return package, activity
 
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            aitk_logger.info(f"Can't get current package and activity. {e}")
             pass
+        except Exception as e:
+            aitk_logger.info(f"Error when parsing package and activity: {e}")
+            return
 
         return "unknown", "unknown"
 
@@ -170,14 +187,38 @@ class ADBController:
             time.sleep(0.2)
 
     def _type(self, text: str) -> None:
-        cmd = [
-            "adb",
-            "shell",
-            "input",
-            "text",
-            text,
-        ]
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        start_idx = 0
+        end_idx = 0
+        while start_idx < len(text):
+            end_idx = start_idx
+            while end_idx < len(text):
+                if text[end_idx].upper() not in LETTER_KEYCODE:
+                    break
+                end_idx += 1
+            # special character
+            if end_idx == start_idx:
+                cmd = [
+                    "adb",
+                    "shell",
+                    "input",
+                    "keyevent",
+                    str(KEYCODE[text[end_idx]]),
+                ]
+                end_idx += 1
+            else:
+                if end_idx >= len(text):
+                    word = text[start_idx:]
+                else:
+                    word = text[start_idx:end_idx]
+                cmd = [
+                    "adb",
+                    "shell",
+                    "input",
+                    "text",
+                    word,
+                ]
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            start_idx = end_idx
 
     def _enter(self) -> None:
         cmd = [
@@ -273,7 +314,7 @@ class ADBController:
             screenshot = base64.b64decode(state["screenshot"])
             f.write(screenshot)
 
-        with open(xml_dir / f"step_{self.step}.xml", "w") as f:
+        with open(xml_dir / f"step_{self.step}.xml", "w", encoding="utf-8") as f:
             f.write(state["xml"])
 
         self.history["screenshots"].append(state["screenshot"])
@@ -299,6 +340,7 @@ class ADBController:
         history_ = {
             "task": self.task,
             **self.kwargs,
+            "exp_args": self.config,
             "steps": [],
         }
 

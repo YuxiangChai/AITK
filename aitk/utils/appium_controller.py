@@ -14,13 +14,13 @@ from aitk import aitk_logger, check_create_dir
 from aitk.utils.keycode import KEYCODE
 
 
-class Controller:
+class AppiumController:
     def __init__(
         self,
         config: dict,
-        appium_port: int = 4723,
         udid: str = None,
         app_info: dict = None,
+        appium_port: int = 4723,
     ) -> None:
         self.capabilities = dict(
             platformName="Android",
