@@ -8,7 +8,7 @@ from pathlib import Path
 
 import dill
 
-from aitk import aitk_logger, check_create_dir
+from aitk import aitk_logger, check_create_dir, get_os
 from aitk.utils.keycode import KEYCODE
 
 
@@ -57,6 +57,34 @@ class ADBController:
         except subprocess.CalledProcessError as e:
             self.logger.log(logging.ERROR, f"Failed to get XML: {e}")
             return "No XML"
+
+    def _get_current_package_activity(self) -> tuple[str, str]:
+        """
+        Get the current running package using ADB
+
+        Returns:
+            str: the current package name
+        """
+        if get_os() == "win":
+            cmd = ["adb", "shell", "dumpsys activity top | findstr ACTIVITY"]
+        else:
+            cmd = ["adb", "shell", "dumpsys activity top | grep ACTIVITY"]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            output = result.stdout.strip()
+            activities = output.split("\n")
+            for activity in activities:
+                if "nexus" in activity.lower():
+                    continue
+
+                package_activity_str = activity.strip().split(" ")[1]
+                package, activity = package_activity_str.split("/")
+                return package, activity
+
+        except subprocess.CalledProcessError:
+            pass
+
+        return "unknown", "unknown"
 
     def _get_screenshot(self) -> str:
         """get current screenshot of the device, return a base64 string
@@ -212,25 +240,6 @@ class ADBController:
         self._tap(int(0.2 * self.w), int(0.48 * self.h))
         time.sleep(1.5)
 
-    def start_record(self, resolution: list[int]) -> None:
-        """start recording the screen
-
-        Args:
-            resolution (list[int]): the resolution of the screen
-        """
-        self.driver.start_recording_screen(videoSize=f"{resolution[0]}x{resolution[1]}")
-
-    def stop_save_record(self, save_path: Path) -> None:
-        """stop recording the screen and save the video
-
-        Args:
-            save_path (Path): the path to save the video
-        """
-        recording = self.driver.stop_recording_screen()
-        recording = base64.b64decode(recording)
-        with open(save_path / f"process.mp4", "wb") as f:
-            f.write(recording)
-
     def get_state(self) -> dict:
         """get current state of the device
 
@@ -242,8 +251,7 @@ class ADBController:
         """
         xml = self._get_xml()
         screenshot = self._get_screenshot()
-        package = self.driver.current_package
-        activity = self.driver.current_activity
+        package, activity = self._get_current_package_activity()
 
         return {
             "xml": xml,
