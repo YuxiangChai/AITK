@@ -4,7 +4,6 @@ import logging
 import subprocess
 import time
 from pathlib import Path
-from typing import Callable
 
 import dill
 from appium import webdriver

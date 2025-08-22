@@ -8,8 +8,8 @@ from pathlib import Path
 
 import dill
 
-from aitk import aitk_logger, check_create_dir, get_os
-from aitk.utils.keycode import KEYCODE, LETTER_KEYCODE, SPECIAL_CODE
+from aitk import aitk_logger, check_create_dir
+from aitk.utils.keycode import KEYCODE, LETTER_KEYCODE
 
 
 class ADBController:

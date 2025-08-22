@@ -4,15 +4,11 @@ import json
 import math
 import re
 
-import cv2
 import numpy as np
-import pyshine as ps
-import requests
 from openai import OpenAI
 from PIL import Image
 
 from aitk.translators.base import BaseTranslator
-from aitk.utils.xml_processor import XMLCleaner
 
 
 class Qwen25VLTranslator(BaseTranslator):

@@ -1,7 +1,4 @@
-import atexit
-import signal
 import subprocess
-import sys
 
 from aitk.utils.avd_manager import AVDManager
 
