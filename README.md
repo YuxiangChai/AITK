@@ -1,14 +1,18 @@
 # AITK
 
-Android Interactive Toolkit for Emulators. The package is designed to let the MLLM-based agents interact with the Android emulator, perform tasks, and save comprehensive trajectory data. The tasks can be easily customized by the users.
+Android Interactive Toolkit for Emulators. This package is lightweight and designed to let any MLLM-based agent interact with the Android emulator (AVD), perform tasks, and save comprehensive trajectory data. The tasks can be easily customized by the users. This package can be used to test the agent and collect the trajectory data.
+
+To evaluate the performance of the agent (such as [A3](https://arxiv.org/abs/2501.01149)), we provide another package [M-Evaluator](https://github.com/YuxiangChai/M-Evaluator), which is a comprehensive and easy-use MLLM-based evaluation system. It includes several MLLM-based evaluation methods (MLLM-as-a-judge) and is designed to be used with any data format.
 
 ## Contents
 
 - [Installation & Setup](#installation--setup)
 - [Usage](#usage)
-  - [1. Start the AVD](#1-start-the-avd)
-  - [2. Prepare the Agent](#2-prepare-the-agent)
-  - [3. Run the Agent](#3-run-the-agent)
+  - [Step 1. Prepare the agent](#step-1-prepare-the-agent)
+  - [Step 2. Modify the config file](#step-2-modify-the-config-file)
+  - [Step 3. Simple test (ADB method)](#step-3-simple-test-adb-method)
+  - [Step 4. Advanced Usage (Step 3 breakdown and more features)](#step-4-advanced-usage-step-3-breakdown-and-more-features)
+- [Task Customization](#task-customization)
 - [ToDo](#todo)
 
 ## Installation & Setup
@@ -42,7 +46,7 @@ For Windows:
 ```
 
 <details>
-<summary><h3>Step 3. Advanced Usage (Step 2 breakdown and more features)</h2></summary>
+<summary><h3>Step 3. Advanced Usage (Step 2 breakdown and more features)</h3></summary>
 
 #### 1. Start the AVD (duplicated AVD)
 
@@ -83,6 +87,8 @@ For Windows:
 ```shell
 .\scripts\win_multi_run.ps1
 ```
+
+</details>
 
 ## Task Customization
 
