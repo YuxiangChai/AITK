@@ -8,6 +8,7 @@ import yaml
 from aitk import aitk_logger, check_create_dir
 from aitk.utils.adb_controller import ADBController
 from aitk.utils.appium_controller import AppiumController
+from aitk.utils.avd_manager import AVDManager
 from aitk.utils.register import register_tasks, register_translator
 
 
@@ -16,6 +17,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--config", "-c", type=str, default="configs/controller.yaml")
     parser.add_argument("--experiment-name", "-e", type=str)
     parser.add_argument("--resume-exp", "-r", type=str)
+    parser.add_argument("--avd-name", "-a", type=str)
     args = parser.parse_args()
     return args
 
@@ -35,6 +37,9 @@ if __name__ == "__main__":
     if args.resume_exp:
         config["experiment"]["resume_exp"] = args.resume_exp
 
+    if args.avd_name:
+        config["device"]["avd_name"] = args.avd_name
+
     existing_tasks = []
     if config["experiment"]["resume_exp"]:
         resume_dir = Path(config["experiment"]["resume_exp"])
@@ -46,6 +51,17 @@ if __name__ == "__main__":
         save_root_dir = Path(config["experiment"]["save_root_dir"])
         save_root_dir = save_root_dir / config["experiment"]["name"]
     check_create_dir(save_root_dir)
+
+    avd_manager = AVDManager()
+    running_avd_list = avd_manager.get_running_avd_list()
+    if running_avd_list is None:
+        aitk_logger.info("No running AVD found. Starting a new AVD duplicate...")
+        avd_manager.duplicate_avd(config["device"]["avd_name"])
+        cmd = ["emulator", "-avd", config["device"]["avd_name"], "-no-snapshot"]
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(60)
+    else:
+        aitk_logger.info(f"Running AVD found.")
 
     device_udid = config["device"]["udid"]
     if config["experiment"]["backend"] == "adb":
@@ -62,6 +78,15 @@ if __name__ == "__main__":
         if task_name in existing_tasks:
             aitk_logger.info(f"Task {task_name} already exists, skipping...")
             continue
+
+        # check if the AVD is running
+        running_avd_list = avd_manager.get_running_avd_list()
+        if running_avd_list is None:
+            aitk_logger.error("No running AVD found. Starting a new AVD duplicate...")
+            avd_manager.duplicate_avd(config["device"]["avd_name"])
+            cmd = ["emulator", "-avd", config["device"]["avd_name"], "-no-snapshot"]
+            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(60)
 
         task_str = task["task"]  # task description
         save_dir = save_root_dir / task["name"]  # task file name

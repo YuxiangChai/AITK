@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 from pathlib import Path
 
 from aitk import aitk_logger, get_os
@@ -142,3 +143,19 @@ class AVDManager:
             except IsADirectoryError:
                 shutil.rmtree(ini_file, ignore_errors=True)
         aitk_logger.info(f"Deleted AVD '{avd_name}'.")
+
+    def get_running_avd_list(self) -> list[dict] | None:
+        cmd = ["adb", "devices"]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            aitk_logger.error(f"Failed to get running AVD list: {result.stderr}")
+            return None
+        results = result.stdout.splitlines()[1:]
+        ret = []
+        for res in results:
+            udid, status = res.split()
+            cmd = ["adb", "-s", udid, "emu", "avd", "name"]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            name = result.stdout.strip() if result.returncode == 0 else None
+            ret.append({"udid": udid, "status": status, "name": name})
+        return ret
