@@ -73,12 +73,8 @@ if __name__ == "__main__":
             appium_port = 4723
         controller = AppiumController(config, device_udid, app_info, appium_port)
 
-    for task in tasks:
-        task_name = task["name"]
-        if task_name in existing_tasks:
-            aitk_logger.info(f"Task {task_name} already exists, skipping...")
-            continue
-
+    task_idx = 0
+    while task_idx < len(tasks):
         # check if the AVD is running
         running_avd_list = avd_manager.get_running_avd_list()
         if running_avd_list is None:
@@ -87,6 +83,29 @@ if __name__ == "__main__":
             cmd = ["emulator", "-avd", config["device"]["avd_name"], "-no-snapshot"]
             subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(60)
+
+            # check is the last task is finished
+            if task_idx > 0:
+                last_task = tasks[task_idx - 1]
+                last_task_name = last_task["name"]
+                folder = save_root_dir / last_task_name
+                if folder.exists() and (folder / "history.json").exists():
+                    aitk_logger.info(
+                        f"Last task {last_task_name} already exists, skipping..."
+                    )
+                    task_idx += 1
+                    continue
+                else:
+                    task_idx -= 1
+                    aitk_logger.info(
+                        f"Last task {last_task_name} is not finished, resuming..."
+                    )
+
+        task = tasks[task_idx]
+        task_name = task["name"]
+        if task_name in existing_tasks:
+            aitk_logger.info(f"Task {task_name} already exists, skipping...")
+            continue
 
         task_str = task["task"]  # task description
         save_dir = save_root_dir / task["name"]  # task file name
@@ -158,6 +177,7 @@ if __name__ == "__main__":
             aitk_logger.error(f"Task save failed: {e}")
 
         aitk_logger.info(f"Task finished: {task['name']}")
+        task_idx += 1
 
     aitk_logger.info(f"Turn off the emulator...")
 

@@ -1,6 +1,6 @@
 # AITK
 
-Android Interactive Toolkit for Emulators. This repository is originally developed for the paper [A3](https://arxiv.org/abs/2501.01149). It is lightweight and designed to let any MLLM-based agent interact with the Android emulator (AVD), perform tasks, and save comprehensive trajectory data. It is used to test agents and collect trajectory data. Since it is extremely flexible and extensible, we decided to release it as a data collection and testing tool for the community. We provide an AVD image for A3 evaluation, however, you can use this repo to create your own AVD image and test your agents.
+Android Interactive Toolkit for Emulators. This repository is originally developed for the paper [A3](https://arxiv.org/abs/2501.01149). It is lightweight and designed to let any MLLM-based agent or human annotator interact with the Android emulator (AVD), perform tasks, and save comprehensive trajectory data. It can be used to test agents and collect trajectory data. Since it is extremely flexible and extensible, we decided to release it as a data collection and testing tool for the community. We provide an AVD image for A3 evaluation, however, you can also use this repo to create your own AVD image and test your agents.
 
 To evaluate the performance of the agent (such as [A3](https://arxiv.org/abs/2501.01149)), we provide another package [M-Evaluator](https://github.com/YuxiangChai/M-Evaluator), which is a comprehensive and easy-use MLLM-based evaluation system. It includes several MLLM-based evaluation methods (MLLM-as-a-judge) and is designed to be used with any data format.
 
@@ -11,7 +11,9 @@ To evaluate the performance of the agent (such as [A3](https://arxiv.org/abs/250
   - [Step 1. Prepare the agent](#step-1-prepare-the-agent)
   - [Step 2. Modify the config file](#step-2-modify-the-config-file)
   - [Step 3. Simple test (ADB method)](#step-3-simple-test-adb-method)
-  - [Step 4. Advanced Usage (Step 3 breakdown and more features)](#step-4-advanced-usage-step-3-breakdown-and-more-features)
+  - [Advanced Usage (detailed features)](#advanced-usage-detailed-features)
+  - [Human Annotation](#human-annotation)
+- [Customize AVD](#customize-avd)
 - [Task Customization](#task-customization)
 - [ToDo](#todo)
 
@@ -33,20 +35,14 @@ Modify the config file in `config/config.yaml` to set up the experiment. More de
 
 Then you can run the following command to start the interaction.
 
-For Linux/Mac:
-
 ```shell
-bash scripts/single_run.sh
+python scripts/interact.py --config <config-file> --experiment-name <experiment-name>
 ```
 
-For Windows:
-
-```shell
-.\scripts\win_single_run.ps1
-```
+You can also use `--resume-exp <experiment-path>` to resume the existing experiment.
 
 <details>
-<summary><h3>Step 4. Advanced Usage (Step 3 breakdown and more features)</h3></summary>
+<summary><h3>Advanced Usage (detailed features)</h3></summary>
 
 #### 1. Start the AVD (duplicated AVD)
 
@@ -66,13 +62,13 @@ If you only use ADB, you can skip this step. If you want to use Appium, after th
 appium
 ```
 
-Then run the following command in another terminal to start testing and interaction.
+Then run the following command in another terminal to start testing and interaction. Since AVD is not stable and may crash during the interaction, we implement a mechanism to automatically duplicate the AVD when it crashes.
 
 ```bash
 python scripts/interact.py
 ```
 
-You can use `--config` to overwrite the config file path and `--experiment-name` to overwrite the experiment name.
+You can use `--config` to overwrite the config file path and `--experiment-name` to overwrite the experiment name and `--resume-exp` to resume the existing experiment.
 
 #### 3. Multiple tests (For data collection)
 
@@ -89,6 +85,14 @@ For Windows:
 ```
 
 </details>
+
+### Human Annotation
+
+You can also use this repo to collect human annotations. Run the following command to start the human annotation.
+
+```shell
+python scripts/m_annotator.py -j <task-json-file>
+```
 
 ## Customize AVD
 
