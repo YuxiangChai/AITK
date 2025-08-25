@@ -151,6 +151,8 @@ class AVDManager:
             aitk_logger.error(f"Failed to get running AVD list: {result.stderr}")
             return None
         results = result.stdout.splitlines()[1:]
+        if results == [""]:
+            return []
         ret = []
         for res in results:
             udid, status = res.split()

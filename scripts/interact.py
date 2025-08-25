@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     avd_manager = AVDManager()
     running_avd_list = avd_manager.get_running_avd_list()
-    if running_avd_list is None:
+    if running_avd_list == []:
         aitk_logger.info("No running AVD found. Starting a new AVD duplicate...")
         avd_manager.duplicate_avd(config["device"]["avd_name"])
         cmd = ["emulator", "-avd", config["device"]["avd_name"], "-no-snapshot"]
