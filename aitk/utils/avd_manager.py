@@ -155,6 +155,8 @@ class AVDManager:
             return []
         ret = []
         for res in results:
+            if res == "":
+                continue
             udid, status = res.split()
             cmd = ["adb", "-s", udid, "emu", "avd", "name"]
             result = subprocess.run(cmd, capture_output=True, text=True)
