@@ -219,6 +219,7 @@ class ADBController:
                 ]
             subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             start_idx = end_idx
+            time.sleep(1)
 
     def _enter(self) -> None:
         cmd = [
