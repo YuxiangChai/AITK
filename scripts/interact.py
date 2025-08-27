@@ -1,15 +1,28 @@
 import argparse
+import base64
+import io
 import subprocess
 import time
 from pathlib import Path
 
 import yaml
+from PIL import Image
 
 from aitk import aitk_logger, check_create_dir
 from aitk.utils.adb_controller import ADBController
 from aitk.utils.appium_controller import AppiumController
 from aitk.utils.avd_manager import AVDManager
 from aitk.utils.register import register_tasks, register_translator
+
+
+def is_stuck(img: base64) -> bool:
+    image_data = base64.b64decode(img)
+    image_pil = Image.open(io.BytesIO(image_data))
+    center_image = image_pil.crop((0, 100, controller.w, controller.h - 100))
+    for pixel in center_image.getdata():
+        if pixel != (0, 0, 0):
+            return False
+    return True
 
 
 def get_args() -> argparse.Namespace:
@@ -92,9 +105,19 @@ if __name__ == "__main__":
             subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(60)
 
-            # check is the last task is finished
+            if config["experiment"]["backend"] == "appium":
+                if "appium_port" in config["device"]:
+                    appium_port = config["device"]["appium_port"]
+                else:
+                    appium_port = 4723
+                controller = AppiumController(
+                    config, device_udid, app_info, appium_port
+                )
+
+            # check if the last task is finished
             if task_idx > 0:
-                last_task = tasks[task_idx - 1]
+                task_idx -= 1
+                last_task = tasks[task_idx]
                 last_task_name = last_task["name"]
                 folder = save_root_dir / last_task_name
                 if folder.exists() and (folder / "history.json").exists():
@@ -104,12 +127,12 @@ if __name__ == "__main__":
                     task_idx += 1
                     continue
                 else:
-                    task_idx -= 1
                     aitk_logger.info(
                         f"Last task {last_task_name} is not finished, resuming..."
                     )
 
         task = tasks[task_idx]
+        crash_flag = False
         try:
             task_name = task["name"]
             if task_name in existing_tasks:
@@ -122,7 +145,7 @@ if __name__ == "__main__":
             check_create_dir(save_dir)
 
             max_steps = (
-                task["max_steps"] if "max_steps" in task else 50
+                task["max_steps"] if "max_steps" in task else 30
             )  # default max steps is 50 so that a task won't run forever
 
             state_save_dir = check_create_dir(save_dir / "states")
@@ -147,6 +170,19 @@ if __name__ == "__main__":
                 aitk_logger.info(f"Step {controller.step}: ")
 
                 state = controller.get_state()
+                # if the emulator is stuck (all screen is black), kill the avd and start over
+                screenshot = state["screenshot"]
+                if is_stuck(screenshot):
+                    avd_running_devices = avd_manager.get_running_avd_list()
+                    avd = avd_running_devices[0]["udid"]
+                    kill_cmd = ["adb", "-s", avd, "emu", "kill"]
+                    subprocess.Popen(
+                        cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                    )
+                    avd_manager.delete_avd()
+                    crash_flag = True
+                    break
+
                 history = controller.get_history()
 
                 # agent communication
@@ -177,6 +213,9 @@ if __name__ == "__main__":
                 if controller.step < max_steps:
                     controller.save_state(state_save_dir)
 
+            if crash_flag:
+                continue
+
             if config["experiment"]["screen_record"]:
                 controller.stop_save_record(save_dir)
 
@@ -190,6 +229,7 @@ if __name__ == "__main__":
             task_idx += 1
         except Exception as e:
             aitk_logger.error(f"Error in task {task['name']: {e}}")
+            task_idx += 1
 
     aitk_logger.info(f"Turn off the emulator...")
 
