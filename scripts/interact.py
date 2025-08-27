@@ -43,6 +43,7 @@ if __name__ == "__main__":
     existing_tasks = []
     if config["experiment"]["resume_exp"]:
         resume_dir = Path(config["experiment"]["resume_exp"])
+        aitk_logger.info(f"Resume from {resume_dir}...")
         for task_dir in resume_dir.iterdir():
             if (task_dir / "history.json").exists():
                 existing_tasks.append(task_dir.name)
@@ -51,6 +52,7 @@ if __name__ == "__main__":
         save_root_dir = Path(config["experiment"]["save_root_dir"])
         save_root_dir = save_root_dir / config["experiment"]["name"]
         if save_root_dir.exists():
+            aitk_logger.info(f"{save_root_dir} exists. Resuming...")
             for task_dir in save_root_dir.iterdir():
                 if (task_dir / "history.json").exists():
                     existing_tasks.append(task_dir.name)
@@ -110,6 +112,7 @@ if __name__ == "__main__":
         task_name = task["name"]
         if task_name in existing_tasks:
             aitk_logger.info(f"Task {task_name} already exists, skipping...")
+            task_idx += 1
             continue
 
         task_str = task["task"]  # task description
