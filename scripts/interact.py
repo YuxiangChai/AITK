@@ -50,7 +50,12 @@ if __name__ == "__main__":
     else:
         save_root_dir = Path(config["experiment"]["save_root_dir"])
         save_root_dir = save_root_dir / config["experiment"]["name"]
-    check_create_dir(save_root_dir)
+        if save_root_dir.exists():
+            for task_dir in save_root_dir.iterdir():
+                if (task_dir / "history.json").exists():
+                    existing_tasks.append(task_dir.name)
+        else:
+            check_create_dir(save_root_dir)
 
     avd_manager = AVDManager()
     running_avd_list = avd_manager.get_running_avd_list()
