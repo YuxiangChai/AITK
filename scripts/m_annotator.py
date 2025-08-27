@@ -767,6 +767,8 @@ class Annotator:
             for msg in self.listener.current_op_msg:
                 self.log("    " + msg)
             self.log(f"    Save State {self.listener.step - 1}")
+            if selected_states:
+                self.log(f"    Essential States: {', '.join(selected_states)}")
             instruction = self.instruction_label.get("1.0", tk.END).strip()
             self.listener.save_operations()
             time.sleep(1)
