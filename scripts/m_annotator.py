@@ -1,4 +1,5 @@
 import argparse
+import ast
 import base64
 import copy
 import json
@@ -677,7 +678,7 @@ class Annotator:
 
     def _build_checkboxes(self) -> None:
         # Define essential states
-        self.essential_states = self.instruction["essential_states"]
+        self.essential_states = ast.literal_eval(self.instruction["essential states"])
 
         # Create checkboxes for each essential state
         self.essential_states_vars = {}
