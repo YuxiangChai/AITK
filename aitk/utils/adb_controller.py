@@ -60,7 +60,7 @@ class ADBController:
             return result.stdout
         except subprocess.CalledProcessError as e:
             self.logger.log(logging.ERROR, f"Failed to get XML: {e}")
-            return "No XML"
+            raise Exception(f"Failed to get XML: {e}")
 
     def _get_current_package_activity(self) -> tuple[str, str]:
         """
@@ -96,10 +96,10 @@ class ADBController:
 
         except subprocess.CalledProcessError as e:
             aitk_logger.info(f"Can't get current package and activity. {e}")
-            pass
+            raise Exception(f"Can't get current package and activity. {e}")
         except Exception as e:
             aitk_logger.info(f"Error when parsing package and activity: {e}")
-            return
+            raise Exception(f"Error when parsing package and activity: {e}")
 
         return "unknown", "unknown"
 
@@ -116,7 +116,7 @@ class ADBController:
             return png_data
         except subprocess.CalledProcessError as e:
             self.logger.log(logging.ERROR, f"Failed to get screenshot: {e}")
-            return "No screenshot"
+            raise Exception(f"Failed to get screenshot: {e}")
 
     def _open(self, app: str) -> None:
         for key, value in self.app_info.items():
