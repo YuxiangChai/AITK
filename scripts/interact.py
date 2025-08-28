@@ -161,6 +161,9 @@ if __name__ == "__main__":
 
             while True:
                 if controller.step >= max_steps:
+                    aitk_logger.info(
+                        f"Task {task['name']} reached max steps: {max_steps}. Ending task..."
+                    )
                     break
 
                 if controller.step == 0:
