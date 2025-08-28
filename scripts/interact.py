@@ -228,7 +228,7 @@ if __name__ == "__main__":
             aitk_logger.info(f"Task finished: {task['name']}")
             task_idx += 1
         except Exception as e:
-            aitk_logger.error(f"Error in task {task['name']: {e}}")
+            aitk_logger.error(f"Error in task {task['name']}: {e}")
             task_idx += 1
 
     aitk_logger.info(f"Turn off the emulator...")
