@@ -98,7 +98,7 @@ if __name__ == "__main__":
     while task_idx < len(tasks):
         # check if the AVD is running
         running_avd_list = avd_manager.get_running_avd_list()
-        if running_avd_list is None:
+        if running_avd_list == []:
             aitk_logger.error("No running AVD found. Starting a new AVD duplicate...")
             avd_manager.duplicate_avd(config["device"]["avd_name"])
             cmd = ["emulator", "-avd", config["device"]["avd_name"], "-no-snapshot"]
@@ -233,6 +233,7 @@ if __name__ == "__main__":
         except Exception as e:
             aitk_logger.error(f"Error in task {task['name']}: {e}")
             task_idx += 1
+            continue
 
     aitk_logger.info(f"Turn off the emulator...")
 
