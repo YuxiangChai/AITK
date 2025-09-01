@@ -57,8 +57,8 @@ Run `python scripts/init_avd.py` to initialize the AVD. (if the device pops up a
 
 Once the AVD is initialized and running, do the following:
 
-1. Use your Google account to log in the Play Store (so that every Google app can be logged in). Do not back up the device!!!
-2. Login to Pinterest and TripAdvisor using your Google account. Open Gmail and Youtube and sign in.
+1. Use your Google account to log in the Play Store (so that every Google app can be logged in). Do not back up the device data during login process!!!
+2. Login to Pinterest and TripAdvisor using your Google account. Open Gmail and Youtube and sign in (update Youtube if needed).
 3. (You can use whatever device to do this) Send an email to `stock_notify_01@163.com` from your gmail account to get an auto-reply email for the task requirements. The subject should be "Nice to see you" and the content should be "I am OK".
 4. Shut down the AVD by directly closing the AVD window (wait for the device to "saving data").
 
