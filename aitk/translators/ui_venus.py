@@ -59,7 +59,7 @@ class UIVenusTranslator(BaseTranslator):
             x, y = coordinate_str[1:-1].split(",")
             if x is None or y is None:
                 return {"action": "end", "answer": "Click not parsed"}
-            x, y = int(x / resize_factor), int(y / resize_factor)
+            x, y = int(int(x) / resize_factor), int(int(y) / resize_factor)
             return {"action": "tap", "x": x, "y": y}
         elif action_type == "LongPress":
             coordinate_str = action_params.get("box", "")
@@ -68,7 +68,7 @@ class UIVenusTranslator(BaseTranslator):
             x, y = coordinate_str[1:-1].split(",")
             if x is None or y is None:
                 return {"action": "end", "answer": "Long Press not parsed"}
-            x, y = int(x / resize_factor), int(y / resize_factor)
+            x, y = int(int(x) / resize_factor), int(int(y) / resize_factor)
             if action_params.get("time") is not None:
                 time = int(action_params.get("time"))
             elif action_params.get("duration") is not None:
@@ -85,8 +85,8 @@ class UIVenusTranslator(BaseTranslator):
             x2, y2 = end_str[1:-1].split(",")
             if x1 is None or y1 is None or x2 is None or y2 is None:
                 return {"action": "end", "answer": "Drag not parsed"}
-            x1, y1 = int(x1 / resize_factor), int(y1 / resize_factor)
-            x2, y2 = int(x2 / resize_factor), int(y2 / resize_factor)
+            x1, y1 = int(int(x1) / resize_factor), int(int(y1) / resize_factor)
+            x2, y2 = int(int(x2) / resize_factor), int(int(y2) / resize_factor)
             if action_params.get("time") is not None:
                 time = int(action_params.get("time"))
             elif action_params.get("duration") is not None:
@@ -121,12 +121,13 @@ class UIVenusTranslator(BaseTranslator):
                         x2, y2 = width * 4 // 5, height // 2
                 else:
                     return {"action": "end", "answer": "Scroll not parsed"}
-            x1, y1 = start_str[1:-1].split(",")
-            x2, y2 = end_str[1:-1].split(",")
-            if x1 is None or y1 is None or x2 is None or y2 is None:
-                return {"action": "end", "answer": "Scroll not parsed"}
-            x1, y1 = int(x1 / resize_factor), int(y1 / resize_factor)
-            x2, y2 = int(x2 / resize_factor), int(y2 / resize_factor)
+            else:
+                x1, y1 = start_str[1:-1].split(",")
+                x2, y2 = end_str[1:-1].split(",")
+                if x1 is None or y1 is None or x2 is None or y2 is None:
+                    return {"action": "end", "answer": "Scroll not parsed"}
+                x1, y1 = int(int(x1) / resize_factor), int(int(y1) / resize_factor)
+                x2, y2 = int(int(x2) / resize_factor), int(int(y2) / resize_factor)
             if action_params.get("time") is not None:
                 time = int(action_params.get("time"))
             elif action_params.get("duration") is not None:
@@ -141,7 +142,6 @@ class UIVenusTranslator(BaseTranslator):
                 "y2": y2,
                 "duration": time,
             }
-
         elif action_type == "Type":
             if "content" in action_params:
                 return {"action": "type", "text": action_params.get("content", "")}
@@ -211,7 +211,7 @@ class UIVenusTranslator(BaseTranslator):
                 return action_type, {}
         return action_type, params
 
-    def extract_tag(content: str, tag: str) -> str:
+    def extract_tag(self, content: str, tag: str) -> str:
         """Extract latest <tag>...</tag> content from model output."""
         pattern = rf"<{tag}>(.*?)</{tag}>"
         matches = list(re.finditer(pattern, content, re.DOTALL))
@@ -289,7 +289,7 @@ PressRecent()
         action_history_str = ", ".join(action_history_str)
 
         response = self.client.chat.completions.create(
-            model="qwen2.5-vl",
+            model="ui_venus",
             messages=[
                 {
                     "role": "user",
