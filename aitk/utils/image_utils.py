@@ -760,7 +760,10 @@ def to_puzzle(root_dir: str) -> None:
 
     screenshot_dir = root_dir / "states" / "screenshots"
 
-    for screenshot_file in screenshot_dir.iterdir():
+    all_sc = list(screenshot_dir.iterdir())
+    all_sc.sort(key=lambda x: int(x.stem.split("_")[1]))
+
+    for screenshot_file in all_sc:
         index = int(screenshot_file.stem.split("_")[1])
         img_np = np.array(Image.open(screenshot_file).convert("RGB"))
         action = history["steps"][index]["action"]
