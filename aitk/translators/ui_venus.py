@@ -14,7 +14,7 @@ from aitk.utils.image_utils import smart_resize
 
 
 class UIVenusTranslator(BaseTranslator):
-    def __init__(self, max_pixels: int = 2665600) -> None:
+    def __init__(self, max_pixels: int = 784000) -> None:
         self.client = OpenAI(
             base_url="http://v-dev-research-11179700-vllm1-wl0101-vtraining.vmic.xyz/v1/",
             api_key="empty",
@@ -172,9 +172,9 @@ class UIVenusTranslator(BaseTranslator):
         image = Image.open(image_stream)
         width, height = image.size
         new_height, new_width, resize_factor = smart_resize(
-            height, width, self.max_pixels
+            height, width, max_pixels=self.max_pixels
         )
-        self.resize_factor = resize_factor
+        self.resize_factor = 1.0 / resize_factor
         image_resized = image.resize((new_width, new_height))
         buffer = io.BytesIO()
         image_resized.save(buffer, format="PNG")
