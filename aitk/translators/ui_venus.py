@@ -44,7 +44,8 @@ class UIVenusTranslator(BaseTranslator):
         if not action_str:
             return {"action": "end", "answer": "No format output"}
 
-        resize_factor = self.resize_factor
+        h_beta = self.h_beta
+        w_beta = self.w_beta
         action_type, action_params = self.parse_action(action_str)
 
         if action_type == "Click":
@@ -54,7 +55,7 @@ class UIVenusTranslator(BaseTranslator):
             x, y = coordinate_str[1:-1].split(",")
             if x is None or y is None:
                 return {"action": "end", "answer": "Click not parsed"}
-            x, y = int(int(x) / resize_factor), int(int(y) / resize_factor)
+            x, y = int(int(x) / w_beta), int(int(y) / h_beta)
             return {"action": "tap", "x": x, "y": y}
         elif action_type == "LongPress":
             coordinate_str = action_params.get("box", "")
@@ -63,7 +64,7 @@ class UIVenusTranslator(BaseTranslator):
             x, y = coordinate_str[1:-1].split(",")
             if x is None or y is None:
                 return {"action": "end", "answer": "Long Press not parsed"}
-            x, y = int(int(x) / resize_factor), int(int(y) / resize_factor)
+            x, y = int(int(x) / w_beta), int(int(y) / h_beta)
             if action_params.get("time") is not None:
                 time = int(action_params.get("time"))
             elif action_params.get("duration") is not None:
@@ -80,8 +81,8 @@ class UIVenusTranslator(BaseTranslator):
             x2, y2 = end_str[1:-1].split(",")
             if x1 is None or y1 is None or x2 is None or y2 is None:
                 return {"action": "end", "answer": "Drag not parsed"}
-            x1, y1 = int(int(x1) / resize_factor), int(int(y1) / resize_factor)
-            x2, y2 = int(int(x2) / resize_factor), int(int(y2) / resize_factor)
+            x1, y1 = int(int(x1) / w_beta), int(int(y1) / h_beta)
+            x2, y2 = int(int(x2) / w_beta), int(int(y2) / h_beta)
             if action_params.get("time") is not None:
                 time = int(action_params.get("time"))
             elif action_params.get("duration") is not None:
@@ -121,8 +122,8 @@ class UIVenusTranslator(BaseTranslator):
                 x2, y2 = end_str[1:-1].split(",")
                 if x1 is None or y1 is None or x2 is None or y2 is None:
                     return {"action": "end", "answer": "Scroll not parsed"}
-                x1, y1 = int(int(x1) / resize_factor), int(int(y1) / resize_factor)
-                x2, y2 = int(int(x2) / resize_factor), int(int(y2) / resize_factor)
+                x1, y1 = int(int(x1) / w_beta), int(int(y1) / h_beta)
+                x2, y2 = int(int(x2) / w_beta), int(int(y2) / h_beta)
             if action_params.get("time") is not None:
                 time = int(action_params.get("time"))
             elif action_params.get("duration") is not None:
@@ -171,10 +172,11 @@ class UIVenusTranslator(BaseTranslator):
         image_stream = io.BytesIO(image)
         image = Image.open(image_stream)
         width, height = image.size
-        new_height, new_width, resize_factor = smart_resize(
+        new_height, new_width, h_beta, w_beta = smart_resize(
             height, width, max_pixels=self.max_pixels
         )
-        self.resize_factor = 1.0 / resize_factor
+        self.h_beta = h_beta
+        self.w_beta = w_beta
         image_resized = image.resize((new_width, new_height))
         buffer = io.BytesIO()
         image_resized.save(buffer, format="PNG")

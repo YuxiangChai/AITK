@@ -78,7 +78,12 @@ if __name__ == "__main__":
     if running_avd_list == []:
         aitk_logger.info("No running AVD found. Starting a new AVD duplicate...")
         avd_manager.duplicate_avd(config["device"]["avd_name"])
-        cmd = ["emulator", "-avd", f"{config["device"]["avd_name"]}_dup", "-no-snapshot"]
+        cmd = [
+            "emulator",
+            "-avd",
+            f'{config["device"]["avd_name"]}_dup',
+            "-no-snapshot",
+        ]
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(60)
     else:
@@ -101,7 +106,12 @@ if __name__ == "__main__":
         if running_avd_list == []:
             aitk_logger.error("No running AVD found. Starting a new AVD duplicate...")
             avd_manager.duplicate_avd(config["device"]["avd_name"])
-            cmd = ["emulator", "-avd", f"{config["device"]["avd_name"]}_dup", "-no-snapshot"]
+            cmd = [
+                "emulator",
+                "-avd",
+                f'{config["device"]["avd_name"]}_dup',
+                "-no-snapshot",
+            ]
             subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(60)
 

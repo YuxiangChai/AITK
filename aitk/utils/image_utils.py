@@ -858,4 +858,6 @@ def smart_resize(
         beta = math.sqrt((height * width) / max_pixels)
         h_bar = max(factor, floor_by_factor(height / beta, factor))
         w_bar = max(factor, floor_by_factor(width / beta, factor))
-    return h_bar, w_bar, beta
+    h_beta = h_bar / height
+    w_beta = w_bar / width
+    return h_bar, w_bar, h_beta, w_beta

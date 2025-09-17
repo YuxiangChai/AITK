@@ -43,7 +43,8 @@ class Qwen25VLTranslator(BaseTranslator):
         if not action_str:
             return {"action": "end", "answer": "No format output"}
 
-        resize_factor = self.resize_factor
+        h_beta = self.h_beta
+        w_beta = self.w_beta
         action_str = action_str.group(1).strip()
         try:
             action_dict = json.loads(action_str)
@@ -55,13 +56,13 @@ class Qwen25VLTranslator(BaseTranslator):
             x, y = action_dict.get("coordinate", [None, None])
             if x is None or y is None:
                 return {"action": "end", "answer": "Click not parsed"}
-            x, y = int(x / resize_factor), int(y / resize_factor)
+            x, y = int(x / w_beta), int(y / h_beta)
             return {"action": "tap", "x": x, "y": y}
         elif action_dict.get("action") == "long_press":
             x, y = action_dict.get("coordinate", [None, None])
             if x is None or y is None:
                 return {"action": "end", "answer": "Long Press not parsed"}
-            x, y = int(x / resize_factor), int(y / resize_factor)
+            x, y = int(x / w_beta), int(y / h_beta)
             if action_dict.get("time") is not None:
                 time = action_dict.get("time")
             elif action_dict.get("duration") is not None:
@@ -76,8 +77,8 @@ class Qwen25VLTranslator(BaseTranslator):
             ):
                 x1, y1 = action_dict.get("coordinate", [None, None])
                 x2, y2 = action_dict.get("coordinate2", [None, None])
-                x1, y1 = int(x1 / resize_factor), int(y1 / resize_factor)
-                x2, y2 = int(x2 / resize_factor), int(y2 / resize_factor)
+                x1, y1 = int(x1 / w_beta), int(y1 / h_beta)
+                x2, y2 = int(x2 / w_beta), int(y2 / h_beta)
             elif action_dict.get("direction") is not None:
                 direction = action_dict.get("direction")
                 if direction == "up":
@@ -146,10 +147,11 @@ class Qwen25VLTranslator(BaseTranslator):
         image_stream = io.BytesIO(image)
         image = Image.open(image_stream)
         width, height = image.size
-        new_height, new_width, resize_factor = smart_resize(
+        new_height, new_width, h_beta, w_beta = smart_resize(
             height, width, max_pixels=self.max_pixels
         )
-        self.resize_factor = 1.0 / resize_factor
+        self.h_beta = h_beta
+        self.w_beta = w_beta
         image_resized = image.resize((new_width, new_height))
         buffer = io.BytesIO()
         image_resized.save(buffer, format="PNG")
