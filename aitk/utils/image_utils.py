@@ -851,6 +851,7 @@ def floor_by_factor(number: int, factor: int) -> int:
 def smart_resize(
     height: int, width: int, factor: int = 28, max_pixels: int = 2352000
 ) -> tuple[int, int, float]:
+    beta = 1.0
     h_bar = max(factor, round_by_factor(height, factor))
     w_bar = max(factor, round_by_factor(width, factor))
     if h_bar * w_bar > max_pixels:
