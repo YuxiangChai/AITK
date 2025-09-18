@@ -7,7 +7,8 @@ from aitk.translators.base import BaseTranslator
 
 class UITarsTranslator(BaseTranslator):
     def __init__(self, sk: str = "empty") -> None:
-        self.client = OpenAI(api_key="empty", base_url="http://127.0.0.1:8002/v1")
+        self.client = OpenAI(api_key="empty",base_url="http://v-dev-dev-11185398-vllm-wl0101-vtraining.vmic.xyz/v1/")
+
         self.prompt = r"""You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task. 
 
         ## Output Format
