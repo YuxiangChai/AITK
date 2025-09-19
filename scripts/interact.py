@@ -12,6 +12,7 @@ from aitk import aitk_logger, check_create_dir
 from aitk.utils.adb_controller import ADBController
 from aitk.utils.appium_controller import AppiumController
 from aitk.utils.avd_manager import AVDManager
+from aitk.utils.image_utils import smart_resize
 from aitk.utils.register import register_tasks, register_translator
 
 
@@ -100,6 +101,15 @@ if __name__ == "__main__":
         controller = AppiumController(config, device_udid, app_info, appium_port)
 
     task_idx = 0
+
+    width, height = controller.w, controller.h
+    h_bar, w_bar, h_beta, w_beta = smart_resize(
+        height, width, max_pixels=config["translator_args"]["max_pixels"]
+    )
+    aitk_logger.info(
+        f"Images will be resize to {w_bar} x {h_bar}. Resize factor is ({w_beta}, {h_beta})."
+    )
+
     while task_idx < len(tasks):
         # check if the AVD is running
         running_avd_list = avd_manager.get_running_avd_list()
