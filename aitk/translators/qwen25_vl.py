@@ -15,7 +15,7 @@ from aitk.utils.image_utils import smart_resize
 class Qwen25VLTranslator(BaseTranslator):
     def __init__(self, max_pixels: int = 784000) -> None:
         self.client = OpenAI(
-            base_url="http://v-dev-research-11179700-vllm1-wl0101-vtraining.vmic.xyz/v1/",
+            base_url="http://v-dev-dev-11185398-vllm-wl0101-vtraining.vmic.xyz/v1/",
             api_key="empty",
         )
         self.max_pixels = max_pixels
@@ -258,7 +258,9 @@ For each function call, return a json object with function name and arguments wi
         user_prompt = f"The user query:  {task}\nTask progress (You have done the following operation on the current device): {action_history_str}; <image>"
 
         response = self.client.chat.completions.create(
-            model="qwen2.5-vl",
+            # model="qwen2.5-vl",
+            model="Qwen2.5-VL-7B-Instruct",
+            
             messages=[
                 {"role": "system", "content": system_prompt},
                 {
