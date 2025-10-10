@@ -291,10 +291,12 @@ class ADBController:
             - screenshot: the screenshot of the current state of the device in base64 format
             - package: the package of the current app
         """
+        if self.state is not None:
+            return self.state
         xml = self._get_xml()
         screenshot = self._get_screenshot()
         package, activity = self._get_current_package_activity()
-
+        self.state = None
         return {
             "xml": xml,
             "screenshot": screenshot,
@@ -311,6 +313,7 @@ class ADBController:
         screenshot_dir = check_create_dir(save_path / "screenshots")
         xml_dir = check_create_dir(save_path / "xmls")
         state = self.get_state()
+        self.state = state
         with open(screenshot_dir / f"step_{self.step}.png", "wb") as f:
             screenshot = base64.b64decode(state["screenshot"])
             f.write(screenshot)
