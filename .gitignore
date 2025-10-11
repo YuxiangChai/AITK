@@ -2,7 +2,6 @@
 logs/**
 **/.DS_Store
 human_annotations/**
-aitk/**
 agent_trajectories/**
 annotation/**
 local/**
