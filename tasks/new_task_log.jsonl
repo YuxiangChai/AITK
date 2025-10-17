@@ -61,6 +61,8 @@
 {"task_name": "citymapper_kingscross_hydepark", "old_es": "Fastest suggested route is selected", "new_es": null}
 {"task_name": "joplin_reading_notes_tag", "old_es": "Note 'Reading Notes' is created", "new_es": "'Reading Notes' is titled"}
 {"task_name": "joplin_reading_notes_tag", "old_es": null, "new_es": "Note create page is opened"}
+{"task_name": "file_copy_testtxt", "old_es": "'test.txt' is selected from Downloads", "new_es": "'test.txt' is selected from 'Downloads'"}
+{"task_name": "file_copy_testtxt", "old_es": "'text.txt' is copied to Documents folder", "new_es": "'text.txt' is copied to 'sdk_gphone64_arm64/Documents' folder"}
 {"task_name": "file_delete_todelete", "old_es": "'Documents' folder is opened", "new_es": "'sdk_gphone64_arm64/Documents' folder is opened"}
 {"task_name": "file_create_mypng_folder", "old_es": "Folder 'MyPNG' is created in Documents folder", "new_es": "Folder 'MyPNG' is created in 'sdk_gphone64_arm64/Documents' folder"}
 {"task_name": "eboox_delete_temp_shelf", "old_es": "Shelf 'Temp' is deleted and books are not deleted", "new_es": "Shelf 'Temp' is deleted"}
