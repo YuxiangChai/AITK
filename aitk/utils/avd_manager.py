@@ -2,14 +2,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from aitk import aitk_logger, get_os
+from aitk import get_os
 
 
 class AVDManager:
-    def __init__(self) -> None:
+    def __init__(self, logger) -> None:
         self.avd_root_dir = Path.home() / ".android" / "avd"
+        self.logger = logger
         if not self.avd_root_dir.exists():
-            aitk_logger.error(f"AVD root directory '{self.avd_root_dir}' not found.")
+            self.logger.error(f"AVD root directory '{self.avd_root_dir}' not found.")
             exit(1)
 
         if get_os() == "mac":
@@ -22,7 +23,7 @@ class AVDManager:
             self.sdk_dir = Path.home() / "AppData" / "Local" / "Android" / "Sdk"
             self.device_arch = "x86_64"
         else:
-            aitk_logger.error(f"Unsupported OS: {get_os()}")
+            self.logger.error(f"Unsupported OS: {get_os()}")
             exit(1)
 
         self.arc_dir = (
@@ -43,7 +44,7 @@ class AVDManager:
         new_init_content = f"avd.ini.encoding=UTF-8\npath={self.avd_root_dir / f'{avd_name}.avd'}\npath.rel=avd/{avd_name}.avd\ntarget=android-35"
         with open(avd_init, "w") as f:
             f.write(new_init_content)
-        aitk_logger.info(f"AVD init file '{avd_init}' modified.")
+        self.logger.info(f"AVD init file '{avd_init}' modified.")
 
     def _modify_avd_config_ini_file(self, avd_name: str = "A3V2") -> None:
         avd_config = self.avd_root_dir / f"{avd_name}.avd" / "config.ini"
@@ -71,7 +72,7 @@ class AVDManager:
 
         with open(avd_config, "w") as f:
             f.writelines(lines)
-        aitk_logger.info(f"AVD config file '{avd_config}' modified.")
+        self.logger.info(f"AVD config file '{avd_config}' modified.")
 
     def _modify_hardware_qemu_ini_file(self, avd_name: str = "A3V2") -> None:
         avd_hardware = self.avd_root_dir / f"{avd_name}.avd" / "hardware-qemu.ini"
@@ -108,7 +109,7 @@ class AVDManager:
 
         with open(avd_hardware, "w") as f:
             f.writelines(lines)
-        aitk_logger.info(f"AVD hardware file '{avd_hardware}' modified.")
+        self.logger.info(f"AVD hardware file '{avd_hardware}' modified.")
 
     def modify_origin_avd(self, avd_name: str = "A3V2") -> None:
         self._remove_lock_files(avd_name)
@@ -142,13 +143,13 @@ class AVDManager:
                 ini_file.unlink()
             except IsADirectoryError:
                 shutil.rmtree(ini_file, ignore_errors=True)
-        aitk_logger.info(f"Deleted AVD '{avd_name}'.")
+        self.logger.info(f"Deleted AVD '{avd_name}'.")
 
     def get_running_avd_list(self) -> list[dict] | None:
         cmd = ["adb", "devices"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
-            aitk_logger.error(f"Failed to get running AVD list: {result.stderr}")
+            self.logger.error(f"Failed to get running AVD list: {result.stderr}")
             return None
         results = result.stdout.splitlines()[1:]
         if results == [""]:

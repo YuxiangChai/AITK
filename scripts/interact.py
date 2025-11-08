@@ -1,6 +1,7 @@
 import argparse
 import base64
 import io
+import logging
 import subprocess
 import time
 from pathlib import Path
@@ -8,7 +9,7 @@ from pathlib import Path
 import yaml
 from PIL import Image
 
-from aitk import aitk_logger, check_create_dir
+from aitk import check_create_dir
 from aitk.utils.adb_controller import ADBController
 from aitk.utils.appium_controller import AppiumController
 from aitk.utils.avd_manager import AVDManager
@@ -32,12 +33,22 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--experiment-name", "-e", type=str)
     parser.add_argument("--resume-exp", "-r", type=str)
     parser.add_argument("--avd-name", "-a", type=str)
+    parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
     return args
 
 
 if __name__ == "__main__":
     args = get_args()
+
+    logging.basicConfig(
+        level=(
+            logging.DEBUG if args.verbose else logging.INFO
+        ),  # Or DEBUG, this is the global minimum level
+        format="[%(asctime)s] %(levelname)s in %(name)s:%(module)s:%(funcName)s: %(message)s",
+        handlers=[logging.StreamHandler()],  # Ensures output to console
+    )
+    aitk_logger = logging.getLogger("AITK - Controller")
 
     with open(args.config, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -74,7 +85,7 @@ if __name__ == "__main__":
             aitk_logger.info(f"Running experiment at: {save_root_dir}")
             check_create_dir(save_root_dir)
 
-    avd_manager = AVDManager()
+    avd_manager = AVDManager(aitk_logger)
     running_avd_list = avd_manager.get_running_avd_list()
     if running_avd_list == []:
         aitk_logger.info("No running AVD found. Starting a new AVD duplicate...")
@@ -86,19 +97,22 @@ if __name__ == "__main__":
             "-no-snapshot",
         ]
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        aitk_logger.info(f"Waiting for AVD to start and load...")
         time.sleep(60)
     else:
         aitk_logger.info(f"Running AVD found.")
 
     device_udid = config["device"]["udid"]
     if config["experiment"]["backend"] == "adb":
-        controller = ADBController(config, app_info)
+        controller = ADBController(config, aitk_logger, app_info)
     elif config["experiment"]["backend"] == "appium":
         if "appium_port" in config["device"]:
             appium_port = config["device"]["appium_port"]
         else:
             appium_port = 4723
-        controller = AppiumController(config, device_udid, app_info, appium_port)
+        controller = AppiumController(
+            config, aitk_logger, device_udid, app_info, appium_port
+        )
 
     task_idx = 0
 
@@ -210,7 +224,7 @@ if __name__ == "__main__":
 
                 # agent communication
                 agent_response = translator.to_agent(task_str, state, history)
-                # aitk_logger.info(f"Agent response: {agent_response}")
+                aitk_logger.info(f"Agent response: {agent_response}")
                 controller.save_history_agent_message(agent_response)
 
                 # translate the agent response to action space in AITK

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import dill
 
-from aitk import aitk_logger, check_create_dir
+from aitk import check_create_dir
 from aitk.utils.keycode import KEYCODE, LETTER_KEYCODE
 
 
@@ -16,6 +16,7 @@ class ADBController:
     def __init__(
         self,
         config: dict,
+        logger,
         app_info: dict = None,
     ) -> None:
         self.app_info = app_info
@@ -42,8 +43,9 @@ class ADBController:
             "activities": [],
         }
         self.config = config
-        self.logger = aitk_logger
+        self.logger = logger
         self.step = 0
+        self.state = None
 
     def _get_xml(self) -> str:
         """
@@ -95,10 +97,10 @@ class ADBController:
                 return package, activity
 
         except subprocess.CalledProcessError as e:
-            aitk_logger.info(f"Can't get current package and activity. {e}")
+            self.logger.info(f"Can't get current package and activity. {e}")
             raise Exception(f"Can't get current package and activity. {e}")
         except Exception as e:
-            aitk_logger.info(f"Error when parsing package and activity: {e}")
+            self.logger.info(f"Error when parsing package and activity: {e}")
             raise Exception(f"Error when parsing package and activity: {e}")
 
         return "unknown", "unknown"

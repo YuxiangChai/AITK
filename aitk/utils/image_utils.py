@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from aitk import aitk_logger, check_create_dir
+from aitk import check_create_dir
 
 
 def visualize_click_opencv(
@@ -746,9 +746,7 @@ def visualize_and_save_actions(
 def to_puzzle(root_dir: str) -> None:
     root_dir = Path(root_dir)
     if not (root_dir / "history.json").exists():
-        aitk_logger.info(
-            f"history.json not found in {root_dir}. Skip to create puzzle."
-        )
+        print(f"history.json not found in {root_dir}. Skip to create puzzle.")
         return
 
     with open(root_dir / "history.json", "r", encoding="utf-8") as f:

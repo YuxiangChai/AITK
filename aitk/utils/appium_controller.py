@@ -9,7 +9,7 @@ import dill
 from appium import webdriver
 from appium.options.android import UiAutomator2Options
 
-from aitk import aitk_logger, check_create_dir
+from aitk import check_create_dir
 from aitk.utils.keycode import KEYCODE
 
 
@@ -17,6 +17,7 @@ class AppiumController:
     def __init__(
         self,
         config: dict,
+        logger,
         udid: str = None,
         app_info: dict = None,
         appium_port: int = 4723,
@@ -56,7 +57,7 @@ class AppiumController:
             "activities": [],
         }
         self.config = config
-        self.logger = aitk_logger
+        self.logger = logger
         self.step = 0
 
     def _get_xml(self) -> str:
