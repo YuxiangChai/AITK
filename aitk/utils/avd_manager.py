@@ -1,3 +1,4 @@
+import logging
 import shutil
 import subprocess
 from pathlib import Path
@@ -6,9 +7,18 @@ from aitk import get_os
 
 
 class AVDManager:
-    def __init__(self, logger) -> None:
+    def __init__(self, logger=None) -> None:
         self.avd_root_dir = Path.home() / ".android" / "avd"
-        self.logger = logger
+        if logger:
+            self.logger = logger
+        else:
+            logging.basicConfig(
+                level=logging.INFO,
+                format="[%(asctime)s] %(levelname)s in %(name)s:%(module)s:%(funcName)s: %(message)s",
+                handlers=[logging.StreamHandler()],  # Ensures output to console
+            )
+            self.logger = logging.getLogger("AVD-Manager")
+
         if not self.avd_root_dir.exists():
             self.logger.error(f"AVD root directory '{self.avd_root_dir}' not found.")
             exit(1)
