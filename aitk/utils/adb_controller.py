@@ -294,7 +294,9 @@ class ADBController:
             - package: the package of the current app
         """
         if self.state is not None:
-            return self.state
+            temp_state = self.state
+            self.state = None
+            return temp_state
         xml = self._get_xml()
         screenshot = self._get_screenshot()
         package, activity = self._get_current_package_activity()

@@ -245,7 +245,7 @@ if __name__ == "__main__":
                 if action_dict["action"] == "end":
                     break
 
-                time.sleep(1)
+                time.sleep(2)
 
                 if controller.step < max_steps:
                     controller.save_state(state_save_dir)
