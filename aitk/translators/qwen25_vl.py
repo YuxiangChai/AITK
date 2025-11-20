@@ -142,7 +142,7 @@ class Qwen25VLTranslator(BaseTranslator):
         else:
             return {"action": "end", "answer": "unknown action"}
 
-    def resize(self, screenshot: base64) -> base64:
+    def resize(self, screenshot: str) -> str:
         image = base64.b64decode(screenshot)
         image_stream = io.BytesIO(image)
         image = Image.open(image_stream)
@@ -260,7 +260,6 @@ For each function call, return a json object with function name and arguments wi
         response = self.client.chat.completions.create(
             # model="qwen2.5-vl",
             model="Qwen2.5-VL-7B-Instruct",
-            
             messages=[
                 {"role": "system", "content": system_prompt},
                 {

@@ -142,7 +142,7 @@ class InfiGUITranslator(BaseTranslator):
         else:
             return {"action": "end", "answer": "unknown action"}
 
-    def resize(self, screenshot: base64) -> base64:
+    def resize(self, screenshot: str) -> str:
         image = base64.b64decode(screenshot)
         image_stream = io.BytesIO(image)
         image = Image.open(image_stream)
