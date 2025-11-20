@@ -43,7 +43,7 @@ pip install -e .
 
 #### 1. Download the AVD image
 
-Download the AVD image from [here](https://huggingface.co/datasets/Yuxiang007/A3V2-AVD-Image). Unzip the file and copy the `A3V2.avd` folder and `A3V2.ini` file to `~/.android/avd/` (on all OS). So it should be like this:
+Download the AVD image from [here (A3V2.zip)](https://huggingface.co/Yuxiang007/A3V2-AVD-Image/tree/main). Unzip the file and copy the `A3V2.avd` folder and `A3V2.ini` file to `~/.android/avd/` (on all OS). So it should be like this:
 
 ```shell
 ~/.android/avd/
