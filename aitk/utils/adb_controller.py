@@ -393,13 +393,13 @@ class ADBController:
         elif action["action"] == "long_press":
             self._long_press(action["x"], action["y"])
         elif action["action"] == "swipe":
-            if "duration" in action:
+            if "duration" in action or "time" in action:
                 self._swipe(
                     action["x1"],
                     action["y1"],
                     action["x2"],
                     action["y2"],
-                    action["duration"],
+                    action["duration"] if "duration" in action else action["time"],
                 )
             else:
                 self._swipe(action["x1"], action["y1"], action["x2"], action["y2"])
@@ -420,7 +420,12 @@ class ADBController:
         elif action["action"] == "home":
             self._home()
         elif action["action"] == "wait":
-            self._wait(action["duration"])
+            if "duration" in action:
+                self._wait(action["duration"])
+            elif "time" in action:
+                self._wait(action["time"])
+            else:
+                self._wait(3)
         elif action["action"] == "end":
             if self.logger is not None and save_flag:
                 self.logger.log(logging.INFO, f"Task Finished.")
