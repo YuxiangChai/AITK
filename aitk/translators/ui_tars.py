@@ -17,9 +17,6 @@ class UITarsTranslator(BaseTranslator):
         )
         self.max_pixels = max_pixels
 
-    def descale_coord(self, x: int, y: int, width: int, height: int) -> tuple:
-        return round(x * width / 1000), round(y * height / 1000)
-
     def resize(self, screenshot: str) -> str:
         image = base64.b64decode(screenshot)
         image_stream = io.BytesIO(image)
@@ -170,22 +167,15 @@ class UITarsTranslator(BaseTranslator):
     def to_agent(self, task: str, state: dict, history: dict) -> str:
 
         screenshot = state["screenshot"]
-        if len(history["screenshots"]) < 2:
-            history_screenshot = history["screenshots"][-1]
+        if len(history["screenshots"]) == 1:
+            history_screenshot = []
+            history_conversation = []
         else:
-            history_screenshot = history["screenshots"][-2]
-        screenshot = self.resize(screenshot)
-        history_screenshot = self.resize(history_screenshot)
+            history_screenshot = [history["screenshots"][-2]]
+            history_conversation = [history["agent_messages"][-1]]
 
-        history_actions = []
-        for m in history["agent_messages"]:
-            action_str = re.search(r"Action:\s*([^\n]*)", m)
-            action_str = action_str.group(1).strip()
-            history_actions.append(action_str)
-        action_history_str = []
-        for i, action in enumerate(history_actions):
-            action_history_str.append(f"Step{i+1}: {action}")
-        action_history_str = ", ".join(action_history_str)
+        screenshot = self.resize(screenshot)
+        history_screenshots = [self.resize(h) for h in history_screenshot]
 
         user_prompt = r"""You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task. 
 
@@ -212,7 +202,40 @@ class UITarsTranslator(BaseTranslator):
         ## User Instruction
         """
 
-        messages = [
+        messages = []
+        for i, (screenshot, message) in enumerate(
+            zip(history_screenshots, history_conversation)
+        ):
+            messages.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": user_prompt + task,
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{screenshot}",
+                            },
+                        },
+                    ],
+                }
+            )
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": message,
+                        },
+                    ],
+                }
+            )
+
+        messages.append(
             {
                 "role": "user",
                 "content": [
@@ -223,28 +246,12 @@ class UITarsTranslator(BaseTranslator):
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/jpeg;base64,{screenshot}",
+                            "url": f"data:image/png;base64,{screenshot}",
                         },
                     },
                 ],
             },
-        ]
-
-        if len(history["agent_messages"]) > 0:
-            messages[0]["content"].extend(
-                [
-                    {
-                        "type": "text",
-                        "text": "Your previous actions are: " + action_history_str,
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{history_screenshot}",
-                        },
-                    },
-                ]
-            )
+        )
 
         response = self.client.chat.completions.create(
             messages=messages, model="UI-TARS-1.5-7B"
