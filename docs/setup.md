@@ -57,10 +57,15 @@ Run `python scripts/init_avd.py` to initialize the AVD. (if the device pops up a
 
 Once the AVD is initialized and running, do the following:
 
-1. Use your Google account to log in the Play Store (so that every Google app can be logged in). Do not back up the device data during login process!!!
+1. Use your Google account to log in the Play Store (so that every Google app can be logged in). **Do not back up the device data during login process!!!**
+
 2. Login to Pinterest and TripAdvisor using your Google account. Open Gmail and Youtube and sign in (update Youtube if needed).
+
 3. (You can use whatever device to do this) Send an email to `stock_notify_01@163.com` from your gmail account to get an auto-reply email for the task requirements. The subject should be "Nice to see you" and the content should be "I am OK".
-4. Shut down the AVD by directly closing the AVD window (wait for the device to "saving data").
+
+4. Due to unknown reasons, **supercook** app needs to be manually setup (which is super strange, it was working normally before Nov 2025). **1.** Add butter to shopping list **2.** Add egg, milk, suger, flour, ketchup, tomato, potato to the Pantry ingredients
+
+5. Shut down the AVD by directly closing the AVD window (wait for the device to "saving data").
 
 **Note that the correctly-executed tasks will not change anything in your account except for sending an email. However, if your agent misbehaves, something might happen. (hopefully nothing severe, don't blame me)**
 
