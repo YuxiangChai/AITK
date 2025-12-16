@@ -13,7 +13,7 @@ class UITarsTranslator(BaseTranslator):
     def __init__(self, max_pixels: int = 784000) -> None:
         self.client = OpenAI(
             api_key="empty",
-            base_url="http://v-dev-dev-11185398-vllm-wl0101-vtraining.vmic.xyz/v1/",
+            base_url="http://v-dev-yuxiang001-11179700-vllm1-wl0101-vtraining.vmic.xyz/v1/",
         )
         self.max_pixels = max_pixels
 
@@ -254,7 +254,7 @@ class UITarsTranslator(BaseTranslator):
         )
 
         response = self.client.chat.completions.create(
-            messages=messages, model="UI-TARS-1.5-7B"
+            messages=messages, model="ui_tars"
         )
 
         out_message = response.choices[0].message.content
