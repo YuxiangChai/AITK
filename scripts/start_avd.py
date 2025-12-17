@@ -16,5 +16,5 @@ if __name__ == "__main__":
     avd_manager = AVDManager()
     avd_manager.duplicate_avd(args.avd_name)
 
-    cmd = ["emulator", "-avd", args.avd_name, "-no-snapshot"]
+    cmd = ["emulator", "-avd", f"{args.avd_name}_dup", "-no-snapshot"]
     subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
