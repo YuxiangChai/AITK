@@ -195,9 +195,9 @@ class AutoGLMTranslator(BaseTranslator):
 
             # Reconstruct User Message (Text Only for history)
             if is_first_step:
-                break
-
-            user_text = f"** Screen Info **\n\n{screen_info_str}"
+                user_text = f"{task}\n\n{screen_info_str}"
+            else:
+                user_text = f"** Screen Info **\n\n{screen_info_str}"
 
             messages.append(
                 MessageBuilder.create_user_message(text=user_text, image_base64=None)
