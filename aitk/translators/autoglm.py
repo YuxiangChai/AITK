@@ -195,19 +195,15 @@ class AutoGLMTranslator(BaseTranslator):
 
             # Reconstruct User Message (Text Only for history)
             if is_first_step:
-                # Approximation: we don't have the original screen_info for step 0
-                user_text = f"{task}\n\n[Screen Info Omitted for History]"
-            else:
-                user_text = f"** Screen Info **\n\n[Screen Info Omitted for History]"
+                break
+
+            user_text = f"** Screen Info **\n\n{screen_info_str}"
 
             messages.append(
                 MessageBuilder.create_user_message(text=user_text, image_base64=None)
             )
 
-            # Add Assistant Message (Model Output)
-            # We trust that history['agent_messages'] contains the response we generated previously
             agent_response = history["agent_messages"][i]
-            # Strip <think> tags if you want to optimize tokens, but usually keeping them is fine for context
             messages.append(MessageBuilder.create_assistant_message(agent_response))
 
         # 3. Current Step
