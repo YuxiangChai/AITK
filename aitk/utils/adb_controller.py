@@ -162,6 +162,10 @@ class ADBController:
         ]
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    def _double_tap(self, x: int, y: int) -> None:
+        cmd = ["adb", "shell", f"input tap {x} {y} && input tap {x} {y}"]
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
     def _swipe(self, x1: int, y1: int, x2: int, y2: int, duration: int = 1000) -> None:
         cmd = [
             "adb",
@@ -392,6 +396,8 @@ class ADBController:
             self._tap(action["x"], action["y"])
         elif action["action"] == "long_press":
             self._long_press(action["x"], action["y"])
+        elif action["action"] == "double_tap":
+            self._double_tap(action["x"], action["y"])
         elif action["action"] == "swipe":
             if "duration" in action or "time" in action:
                 self._swipe(
