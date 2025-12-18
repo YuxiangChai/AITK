@@ -7,9 +7,6 @@ import sys
 import time
 from typing import Any, Dict
 
-# Add Open-AutoGLM to sys.path
-sys.path.append(os.path.abspath("../Open-AutoGLM"))
-
 try:
     from phone_agent.actions.handler import parse_action
     from phone_agent.agent import AgentConfig, PhoneAgent
@@ -17,7 +14,7 @@ try:
     from phone_agent.model.client import MessageBuilder
 except ImportError:
     # Fallback or error handling if path is incorrect
-    print("Error: Open-AutoGLM not found in ../Open-AutoGLM")
+    print("Error: Open-AutoGLM not installed")
     raise
 
 from PIL import Image
@@ -242,3 +239,7 @@ class AutoGLMTranslator(BaseTranslator):
         except Exception as e:
             # Return error as answer so it can be handled
             return f'<answer>finish(message="Error: {str(e)}")</answer>'
+
+
+def register(kargs: dict) -> AutoGLMTranslator:
+    return AutoGLMTranslator(**kargs)
