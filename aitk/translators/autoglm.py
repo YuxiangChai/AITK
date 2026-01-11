@@ -171,7 +171,7 @@ class AutoGLMTranslator(BaseTranslator):
         """Given the task, current state and the agent history, interact with the agent and get the output"""
 
         screenshot = state["screenshot"]
-        screenshot = self.resize(screenshot)
+        # screenshot = self.resize(screenshot)
 
         current_package = state.get("package", "Unknown")
         # Build current app info string
