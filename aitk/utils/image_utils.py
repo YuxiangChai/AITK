@@ -31,40 +31,12 @@ def visualize_click_opencv(
     x, y = click_pos
 
     # Draw a red circle with a white border. OpenCV uses BGR, so red is (0, 0, 255)
-    cv2.circle(overlay, (x, y), circle_radius, (0, 255, 0), 6)
+    cv2.circle(overlay, (x, y), circle_radius, (0, 0, 255), 6)
 
     # Draw a green square frame around the red circle
     top_left = (x - square_size, y - square_size)
     bottom_right = (x + square_size, y + square_size)
-    cv2.rectangle(overlay, top_left, bottom_right, (0, 0, 255), 8)
-
-    # Add the "C" label in the top-right corner of the green square
-    # font = cv2.FONT_HERSHEY_SIMPLEX
-    # text = "C"
-    # font_scale = 1.5
-    # font_thickness = 3
-    # text_size = cv2.getTextSize(text, font, font_scale, font_thickness)[0]
-    # text_x = bottom_right[0] - text_size[0] - 10
-    # text_y = top_left[1] + text_size[1] + 10
-
-    # # Draw the "C" label with a black background and white text
-    # cv2.rectangle(
-    #     overlay,
-    #     (text_x - 10, text_y - text_size[1] - 10),
-    #     (text_x + text_size[0] + 10, text_y + 10),
-    #     (0, 0, 0),
-    #     -1,
-    # )
-    # # Black background
-    # cv2.putText(
-    #     overlay,
-    #     text,
-    #     (text_x, text_y),
-    #     font,
-    #     font_scale,
-    #     (255, 255, 255),
-    #     font_thickness,
-    # )
+    cv2.rectangle(overlay, top_left, bottom_right, (0, 255, 0), 8)
 
     # Combine the overlay with the base image using alpha transparency
     img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
@@ -280,50 +252,7 @@ def _wrap_action_text(action, action_detail):
     return text_segments
 
 
-def combine_images(
-    before_img: np.ndarray,
-    after_img: np.ndarray,
-    action_type: str,
-    action_detail: str,
-    click_position: Optional[Tuple[int, int]] = None,
-) -> Image:
-    """
-    优化版图像拼接函数，确保标签、边框和描述不重叠
-    """
-
-    GAP_WIDTH = 40  # 图片之间的间隙
-
-    # 将 numpy 数组转换为 PIL Image
-    if click_position is not None:
-        before_base = visualize_click_opencv(before_img, click_position)
-    else:
-        before_base = Image.fromarray(before_img)
-
-    after_base = Image.fromarray(after_img)
-
-    # 创建带边框和标签的子图
-    before_frame = create_frame(before_base, "Before Action")
-    after_frame = create_frame(after_base, "After Action")
-
-    # 计算拼接的总宽度和最大高度
-    total_width = before_frame.width + after_frame.width + GAP_WIDTH
-    max_height = max(before_frame.height, after_frame.height)
-
-    # 创建一个不带底部文字区域的临时画布
-    combined_temp = Image.new("RGB", (total_width, max_height), "white")
-
-    # 拼接两个子图
-    combined_temp.paste(before_frame, (0, 0))
-    combined_temp.paste(after_frame, (before_frame.width + GAP_WIDTH, 0))
-
-    # 在底部添加带格式的动作描述
-    text_segments = _wrap_action_text(action_type, action_detail)
-    combined_final = _add_strip_with_text(combined_temp, text_segments)
-
-    return combined_final
-
-
-def _create_puzzle_layout(image_folder: str, task_title: str, output_path: str):
+def _create_layout(image_folder: str, task_title: str, output_path: str):
     """
     将文件夹中的所有图片合并成一张大图。
     """
@@ -390,19 +319,19 @@ def _create_puzzle_layout(image_folder: str, task_title: str, output_path: str):
         + bottom_padding
     )
 
-    # Create puzzle canvas with horizontal padding for the title
+    # Create canvas with horizontal padding for the title
     horizontal_padding = int(cols * img_width * 0.025)
-    puzzle_width = cols * img_width + horizontal_padding * 2
-    puzzle_height = rows * img_height + title_height
-    puzzle_image = Image.new("RGB", (int(puzzle_width), int(puzzle_height)), "white")
-    draw = ImageDraw.Draw(puzzle_image)
+    canvas_width = cols * img_width + horizontal_padding * 2
+    canvas_height = rows * img_height + title_height
+    canvas_image = Image.new("RGB", (int(canvas_width), int(canvas_height)), "white")
+    draw = ImageDraw.Draw(canvas_image)
 
     # Draw title centered within the full canvas width
     y_position = top_padding
     for line in wrapped_text:
         line_bbox = draw.textbbox((0, 0), line, font=title_font)
         line_width = line_bbox[2] - line_bbox[0]
-        x_position = (puzzle_width - line_width) // 2
+        x_position = (canvas_width - line_width) // 2
         draw.text((x_position, y_position), line, font=title_font, fill="black")
         y_position += line_height + line_spacing
 
@@ -412,7 +341,7 @@ def _create_puzzle_layout(image_folder: str, task_title: str, output_path: str):
         x_base = col * img_width + horizontal_padding
         y_base = row * img_height + title_height
         img = Image.open(os.path.join(image_folder, image_file))
-        puzzle_image.paste(img, (int(x_base), int(y_base)))
+        canvas_image.paste(img, (int(x_base), int(y_base)))
         img.close()
 
         # Add number to top-left corner with taller background
@@ -428,13 +357,13 @@ def _create_puzzle_layout(image_folder: str, task_title: str, output_path: str):
             x_base + 5 + text_w + bg_x_padding * 2,
             y_base + 15 + text_h + bg_y_padding * 2,
         )
-        overlay = Image.new("RGBA", puzzle_image.size, (255, 255, 255, 0))
+        overlay = Image.new("RGBA", canvas_image.size, (255, 255, 255, 0))
         overlay_draw = ImageDraw.Draw(overlay)
         overlay_draw.rectangle(bg_rect, fill=(255, 255, 255, 180))
-        puzzle_image = Image.alpha_composite(
-            puzzle_image.convert("RGBA"), overlay
+        canvas_image = Image.alpha_composite(
+            canvas_image.convert("RGBA"), overlay
         ).convert("RGB")
-        draw = ImageDraw.Draw(puzzle_image)
+        draw = ImageDraw.Draw(canvas_image)
         draw.text(
             (x_base + 5 + bg_x_padding, y_base + 5 + bg_y_padding),
             number_text,
@@ -442,162 +371,18 @@ def _create_puzzle_layout(image_folder: str, task_title: str, output_path: str):
             fill="red",
         )
 
-    # Save puzzle image
+    # Save canvas image
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    puzzle_image.save(output_path)
-    # print(f"Puzzle image saved to {output_path}")
-
-
-def _add_llm_description_to_image(
-    image: Image, action_text: str, ui_text: str
-) -> Image:
-    """Helper to draw LLM descriptions below an image using a small font."""
-    try:
-        font = ImageFont.truetype("Arial.ttf", 28)  # Smaller font
-    except IOError:
-        font = ImageFont.load_default(size=28)
-
-    image_width, image_height = image.size
-    padding = 20  # Horizontal padding for text
-
-    # Prepare text
-    action_text = "Action: " + (action_text or "N/A")
-    ui_text = "UI: " + (ui_text or "N/A")
-
-    # Wrap text using a more robust average character width calculation
-    temp_draw = ImageDraw.Draw(image)
-    sample_text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    try:
-        # Get the bounding box for the entire sample text for better accuracy
-        total_width = temp_draw.textlength(sample_text, font=font)
-        avg_char_width = total_width / len(sample_text)
-    except Exception:
-        # Fallback for older PIL versions
-        total_width = sum(font.getbbox(c)[2] for c in sample_text)
-        avg_char_width = total_width / len(sample_text)
-
-    if avg_char_width > 0:
-        chars_per_line = int((image_width - padding * 2) / avg_char_width)
-    else:  # Fallback
-        chars_per_line = 50
-
-    action_lines = textwrap.wrap(action_text, width=chars_per_line)
-    ui_lines = textwrap.wrap(ui_text, width=chars_per_line)
-
-    # Calculate height needed for the text strip
-    line_height = (
-        temp_draw.textbbox((0, 0), "A", font=font)[3]
-        - temp_draw.textbbox((0, 0), "A", font=font)[1]
-    )
-    line_spacing = 8
-    vertical_padding = 15
-
-    strip_height = (len(action_lines) + len(ui_lines)) * (
-        line_height + line_spacing
-    ) + vertical_padding * 2
-
-    # Create new image with space for the strip
-    new_image = Image.new(
-        "RGB", (image_width, image_height + int(strip_height)), "white"
-    )
-    new_image.paste(image, (0, 0))
-    draw = ImageDraw.Draw(new_image)
-
-    # Draw the text
-    y_text = image_height + vertical_padding
-    for line in action_lines:
-        draw.text((padding, y_text), line, font=font, fill="red")
-        y_text += line_height + line_spacing
-
-    for line in ui_lines:
-        draw.text((padding, y_text), line, font=font, fill="black")
-        y_text += line_height + line_spacing
-
-    return new_image
-
-
-def create_llm_puzzle(
-    log_dir: str,
-    task_identifier: str,
-    task_description: str,
-    llm_step_descriptions: dict,  # Changed to dict
-    log_data: list,
-):
-    """
-    Creates single-step images with LLM descriptions and combines them into a puzzle.
-    """
-    # Create output directory
-    llm_actions_output_dir = os.path.join(log_dir, "llm_described_actions")
-    os.makedirs(llm_actions_output_dir, exist_ok=True)
-
-    for step_data in log_data:
-        step_num = step_data.get("step")
-        if not step_num:
-            continue
-
-        # Use the raw screenshot before the action as the base
-        raw_img_path = os.path.join(log_dir, f"{step_num - 1}.png")
-        if not os.path.exists(raw_img_path):
-            continue
-
-        # Get the LLM description for this specific step from the dictionary
-        desc_obj = llm_step_descriptions.get(step_num)
-        if not desc_obj:  # Skip if no description was generated for this step
-            continue
-
-        raw_img_np = np.array(Image.open(raw_img_path).convert("RGB"))
-
-        # Check for click position in log data to add visualization
-        action_details = step_data.get("action", [])
-        click_position = None
-        if (
-            action_details
-            and isinstance(action_details, list)
-            and len(action_details) > 1
-            and isinstance(action_details[1], dict)
-        ):
-            if action_details[1].get("detail_type") == "coordinates":
-                detail = action_details[1].get("detail")
-                if isinstance(detail, list) and len(detail) == 2:
-                    click_position = tuple(detail)
-
-        # Create base image with click visualization on the raw screenshot
-        if click_position:
-            base_img = visualize_click_opencv(raw_img_np, click_position)
-        else:
-            base_img = Image.fromarray(raw_img_np)
-
-        # Get text from the description object
-        action_text = desc_obj.get("action_description", "N/A")
-        ui_text = desc_obj.get("ui_description", "N/A")
-
-        # Add LLM text to the base image
-        final_img = _add_llm_description_to_image(base_img, action_text, ui_text)
-
-        # Save the new image
-        output_path = os.path.join(llm_actions_output_dir, f"step_{step_num}.png")
-        final_img.save(output_path)
-        print(f"Saved LLM-described image for step {step_num} to {output_path}")
-
-    # Create the puzzle from the new directory of images
-    task_info = f"{task_identifier}: {task_description} (LLM Analysis)"
-    puzzle_output_path = os.path.join(log_dir, "puzzle", "puzzle_llm.png")
-
-    if os.path.exists(llm_actions_output_dir) and os.listdir(llm_actions_output_dir):
-        print("Creating LLM-based puzzle image...")
-        _create_puzzle_layout(
-            image_folder=llm_actions_output_dir,
-            task_title=task_info,
-            output_path=puzzle_output_path,
-        )
+    canvas_image.save(output_path)
 
 
 def visualize_single_action(
     img: np.ndarray,
-    action_type: str,
-    action_detail: str,
+    action_type: str = None,
+    action_detail: str = None,
     click_position: Optional[Tuple[int, int]] = None,
     swipe_position: Optional[Tuple[int, int]] = None,
+    add_text: bool = True,
 ) -> Image:
     """
     为单个动作生成可视化图像，包括点击位置标记和动作描述。
@@ -612,147 +397,30 @@ def visualize_single_action(
         带有动作标记和描述的PIL Image
     """
 
-    base_img = Image.fromarray(img)
+    base_img = Image.fromarray(img) if isinstance(img, np.ndarray) else img
     if click_position is not None:
         base_img = visualize_click_opencv(img, click_position)
     if swipe_position is not None:
         base_img = visualize_swipe_opencv(img, swipe_position)
 
     # 添加动作描述
-    text_segments = _wrap_action_text(action_type, action_detail)
-    final_img = _add_strip_with_text(base_img, text_segments)
+    if add_text:
+        text_segments = _wrap_action_text(action_type, action_detail)
+        final_img = _add_strip_with_text(base_img, text_segments)
+    else:
+        final_img = base_img
 
     return final_img
 
 
-def visualize_and_save_actions(
-    log_dir: str, task_identifier: str, task_description: str
-):
-    """
-    读取日志文件，为每个动作生成可视化，并保存结果。
-
-    Args:
-        log_dir: 包含log.json和截图的目录路径
-        task_identifier: 任务标识符
-        task_description: 任务描述
-    """
-    log_file_path = os.path.join(log_dir, "log.json")
-    if not os.path.exists(log_file_path):
-        print(f"Error: log.json not found in {log_dir}")
-        return
-
-    with open(log_file_path, "r", encoding="utf-8") as f:
-        log_data = json.load(f)
-
-    # 创建两个输出目录
-    actions_output_dir = os.path.join(log_dir, "visualize_actions")
-    single_actions_output_dir = os.path.join(log_dir, "single_actions")
-    os.makedirs(actions_output_dir, exist_ok=True)
-    os.makedirs(single_actions_output_dir, exist_ok=True)
-
-    # 处理所有步骤
-    for step_data in log_data:
-        step = step_data.get("step")
-        if not step:
-            continue
-
-        # print(f"Processing step {step}...")
-
-        # The screenshot *before* the action of the current step
-        before_img_path = os.path.join(log_dir, f"{step - 1}.png")
-        if not os.path.exists(before_img_path):
-            print(f"Warning: Screenshot for step {step} not found. Skipping.")
-            continue
-
-        try:
-            before_img_np = np.array(Image.open(before_img_path).convert("RGB"))
-        except Exception as e:
-            print(f"Error loading image for step {step}: {e}. Skipping.")
-            continue
-
-        # 提取动作信息
-        action_details = step_data.get("action", [])
-        click_position = None
-        action_type_str = "N/A"
-        action_detail_str = "N/A"
-
-        if (
-            action_details
-            and isinstance(action_details, list)
-            and len(action_details) > 0
-        ):
-            action_type_str = action_details[0]
-            if len(action_details) > 1 and isinstance(action_details[1], dict):
-                detail_type = action_details[1].get("detail_type")
-                detail = action_details[1].get("detail")
-                if detail_type == "coordinates":
-                    action_detail_str = "Click position is marked with a red circle."
-                    if isinstance(detail, list) and len(detail) == 2:
-                        click_position = tuple(detail)
-                else:
-                    action_detail_str = str(detail)
-
-        # --- 生成 `single_actions` 图片 (基于log.json) ---
-        single_action_img = visualize_single_action(
-            before_img_np, action_type_str, action_detail_str, click_position
-        )
-        single_action_path = os.path.join(single_actions_output_dir, f"step_{step}.png")
-        single_action_img.save(single_action_path)
-        # print(
-        #     f"Saved single action visualization for step {step} to {single_action_path}"
-        # )
-
-        # --- 生成 `visualize_actions` 图片 (给LLM分析) ---
-        # The screenshot *after* the action. If it doesn't exist, it's the last step.
-        after_img_path = os.path.join(log_dir, f"{step}.png")
-        if not os.path.exists(after_img_path):
-            # print(
-            #     f"  - Step {step} appears to be the last action. Skipping before/after visualization as no 'after' screenshot exists."
-            # )
-            continue  # Skip creating a before/after image for the last step
-
-        after_img_np = np.array(Image.open(after_img_path).convert("RGB"))
-
-        try:
-            combined_img = combine_images(
-                before_img=before_img_np,
-                after_img=after_img_np,
-                action_type=action_type_str,
-                action_detail=action_detail_str,
-                click_position=click_position,
-            )
-            output_path = os.path.join(actions_output_dir, f"step_{step}.png")
-            combined_img.save(output_path)
-            # print(f"Saved before/after visualization for step {step} to {output_path}")
-        except Exception as e:
-            print(f"Error creating before/after visualization for step {step}: {e}")
-
-    # 使用单个动作的可视化创建原始puzzle图
-    task_info = f"{task_identifier}: {task_description}"
-    # print("Creating puzzle image from log.json...")
-    puzzle_path = os.path.join(log_dir, "puzzle", "puzzle.png")
-    if os.path.exists(single_actions_output_dir) and os.listdir(
-        single_actions_output_dir
-    ):
-        _create_puzzle_layout(
-            image_folder=single_actions_output_dir,
-            task_title=task_info,
-            output_path=puzzle_path,
-        )
-
-    return log_data
-
-
-def to_puzzle(root_dir: str) -> None:
+def combine_all_screens(root_dir: str) -> None:
     root_dir = Path(root_dir)
     if not (root_dir / "history.json").exists():
-        print(f"history.json not found in {root_dir}. Skip to create puzzle.")
+        print(f"history.json not found in {root_dir}. Skip.")
         return
 
     with open(root_dir / "history.json", "r", encoding="utf-8") as f:
         history = json.load(f)
-
-    puzzle_dir = check_create_dir(root_dir / "puzzle")
 
     single_annotated_images = []
 
@@ -766,7 +434,7 @@ def to_puzzle(root_dir: str) -> None:
         img_np = np.array(Image.open(screenshot_file).convert("RGB"))
         action = history["steps"][index]["action"]
         action_type_str = action["action"]
-        if action_type_str == "tap":
+        if action_type_str == "tap" or action_type_str == "long_press":
             click_position = (action["x"], action["y"])
         else:
             click_position = None
@@ -791,44 +459,34 @@ def to_puzzle(root_dir: str) -> None:
         )
         single_annotated_images.append(annotated_img)
 
+    if not single_annotated_images:
+        return
+
     images_per_row = 4
-    gap = 50  # 图像间的空隙像素
-    slide_step = 2  # 滑动窗口步长
+    gap = 50  # Gap between images in pixels
 
-    # 滑动窗口拼接
-    num_windows = (
-        (len(single_annotated_images) - images_per_row) // slide_step + 1
-        if len(single_annotated_images) >= images_per_row
-        else 0
-    )
+    # Calculate grid dimensions based on the maximum width and height to ensure alignment
+    max_w = max(img.width for img in single_annotated_images)
+    max_h = max(img.height for img in single_annotated_images)
 
-    for i in range(num_windows + 1):
+    num_rows = math.ceil(len(single_annotated_images) / images_per_row)
 
-        window_imgs = single_annotated_images[
-            i * slide_step : i * slide_step + images_per_row
-        ]
+    total_width = images_per_row * max_w + (images_per_row - 1) * gap
+    total_height = num_rows * max_h + (num_rows - 1) * gap
 
-        if i == num_windows:
-            if len(window_imgs) == 3:
-                window_imgs = single_annotated_images[-4:]
-            else:
-                break
+    # Create the large canvas
+    new_img = Image.new("RGB", (total_width, total_height), "white")
 
-        # 计算拼接后图片的尺寸
-        widths, heights = zip(*(img.size for img in window_imgs))
-        total_width = sum(widths) + gap * (len(window_imgs) - 1)
-        max_height = max(heights)
+    for i, img in enumerate(single_annotated_images):
+        row = i // images_per_row
+        col = i % images_per_row
 
-        # 创建新图像
-        new_img = Image.new("RGB", (total_width, max_height), (255, 255, 255))
-        x_offset = 0
-        for img in window_imgs:
-            new_img.paste(img, (x_offset, 0))
-            x_offset += img.width + gap
+        x = col * (max_w + gap)
+        y = row * (max_h + gap)
 
-        # 保存
-        out_name = f"puzzle_{i:02d}.png"
-        new_img.save(puzzle_dir / out_name)
+        new_img.paste(img, (x, y))
+
+    new_img.save(root_dir / "traj_combined.png")
 
 
 def round_by_factor(number: int, factor: int) -> int:
