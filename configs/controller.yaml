@@ -2,12 +2,12 @@ device:
   udid: emulator-5554 # 127.0.0.1:6555 is the default udid for Genymotion. emulator-5554 is the default udid for Android Virtual Device
   avd_name: A3V2 # the name of the base AVD
 
-translator: infigui_g1 # the translator to use for the task execution (the file name of the translator file in the aitk/translators directory)
+translator: qwen25_vl # the translator to use for the task execution (the file name of the translator file in the aitk/translators directory)
 translator_args:
   max_pixels: 784000
 
 experiment:
-  name: infigui_g1_benchmark
+  name: qwen25vl_benchmark
   save_root_dir: agent_trajectories/
   tasks: tasks/tasks.jsonl # use the task jsonl file
   backend: adb # select from adb or appium

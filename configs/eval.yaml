@@ -1,4 +1,4 @@
-data_dir: "agent_trajectories/tempr_benchmark" # path to the data directory. Can be task folder or a parent folder containing several tasks
+data_dir: "agent_trajectories/qwen25vl_benchmark" # path to the data directory. Can be task folder or a parent folder containing several tasks
 
 eval:
   base_url: "" # base url of the model deployed by vllm

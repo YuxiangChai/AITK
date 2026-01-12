@@ -17,7 +17,7 @@ You can follow the style above to create new tasks and save them in a `.jsonl` f
 
 ## New App and Task
 
-You need to use the following command to start the base AVD and install new apps and login (if needed). If you need task pre-requisites (e.g., uploaded files, apps setup, etc.) which need to be initialized everytime you start a new test, you should also operate them in the base AVD.
+You need to use the following command to start the base AVD and install new apps and login (if needed). If you need task pre-requisites (e.g., uploaded files, apps setup, etc.) which need to be initialized everytime you start the new test, you should also operate them in the base AVD.
 
 ```shell
 python scripts/init_avd.py
