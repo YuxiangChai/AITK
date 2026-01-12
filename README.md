@@ -41,7 +41,13 @@ The experiment will be automatically resumed if the `experiment.name` is the sam
 
 ### Step 4. Evaluate using A3RM
 
-After the interaction, you can evaluate the agent using A3RM. Run the following command:
+After the interaction, you can evaluate the agent using A3RM. Download the checkpoint at [link](https://huggingface.co/Yuxiang007/A3RM/tree/main) to the server and use vllm to deploy.
+
+```shell
+vllm serve /path/to/A3RM --host 0.0.0.0 --port 1005 --served-model-name a3rm
+```
+
+Then run the following command on the client side (where you run the experiments and save the results):
 
 ```shell
 python scripts/infer.py --config <config-file>
