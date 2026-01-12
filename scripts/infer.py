@@ -11,6 +11,8 @@ import json
 import logging
 import mimetypes
 import os
+import re
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -175,6 +177,8 @@ def process_trajectories(data_dir: Path) -> List[Dict[str, Any]]:
 
                 eval_item["metadata"] = {
                     "task_name": task_name,
+                    "category": history.get("category", "Uncategorized"),
+                    "level": history.get("level", "Unspecified"),
                     "step_index": i,
                     "essential_state": es,
                     "traj_dir": str(traj_dir),
@@ -284,6 +288,159 @@ def run_inference(
     return asyncio.run(run_inference_async(eval_items, config))
 
 
+def parse_response(response: str) -> bool:
+    """Parses the judge response to determine if the result is 'yes'."""
+    if not response:
+        return False
+    # Look for content within <answer> tags
+    match = re.search(r"<answer>(.*?)</answer>", response, re.DOTALL | re.IGNORECASE)
+    if match:
+        answer_content = match.group(1).strip().lower()
+        return "yes" in answer_content
+    return "yes" in response.lower()
+
+
+def evaluate_metrics(eval_items: List[Dict[str, Any]]):
+    """Calculates and prints evaluation metrics from the results."""
+
+    # Store results grouped by task_name
+    tasks_data = {}
+
+    for item in eval_items:
+        metadata = item.get("metadata", {})
+        task_name = metadata.get("task_name")
+        es = metadata.get("essential_state")
+        category = metadata.get("category", "Uncategorized")
+        level = metadata.get("level", "Unspecified")
+        response = item.get("response", "")
+
+        if task_name and es:
+            if task_name not in tasks_data:
+                tasks_data[task_name] = {
+                    "category": category,
+                    "level": level,
+                    "essential_states": defaultdict(list),
+                    "metadata": metadata,
+                }
+
+            is_achieved = parse_response(response)
+            tasks_data[task_name]["essential_states"][es].append(is_achieved)
+
+    # Analyze each task
+    task_stats = []
+
+    for task_name, data in tasks_data.items():
+        category = data["category"]
+        level = data["level"]
+        es_results = data["essential_states"]
+
+        all_essential_states = list(es_results.keys())
+        achieved_states_count = 0
+        total_states_count = len(all_essential_states)
+
+        # Check achievement for each essential state
+        task_achieved_states = 0
+        for es in all_essential_states:
+            step_results = es_results.get(es, [])
+            if any(step_results):
+                task_achieved_states += 1
+
+        # Important: Check if task has essential states. If total_states_count is 0, is_complete is False (or NA)
+        is_complete = (task_achieved_states == total_states_count) and (
+            total_states_count > 0
+        )
+
+        # Essential State Achievement Rate for this task
+        es_rate = (
+            (task_achieved_states / total_states_count)
+            if total_states_count > 0
+            else 0.0
+        )
+
+        task_stats.append(
+            {
+                "name": task_name,
+                "category": category,
+                "level": level,
+                "es_achieved": task_achieved_states,
+                "es_total": total_states_count,
+                "es_rate": es_rate,
+                "is_complete": is_complete,
+            }
+        )
+
+    # Aggregate Statistics
+    def calculate_aggregates(stats, group_key=None):
+        groups = defaultdict(
+            lambda: {
+                "total_tasks": 0,
+                "completed_tasks": 0,
+                "total_es": 0,
+                "achieved_es": 0,
+            }
+        )
+
+        for task in stats:
+            key = task.get(group_key) if group_key else "Overall"
+            groups[key]["total_tasks"] += 1
+            if task["is_complete"]:
+                groups[key]["completed_tasks"] += 1
+            groups[key]["total_es"] += task["es_total"]
+            groups[key]["achieved_es"] += task["es_achieved"]
+
+        results = {}
+        for key, data in groups.items():
+            tcr = (
+                (data["completed_tasks"] / data["total_tasks"]) * 100
+                if data["total_tasks"] > 0
+                else 0.0
+            )
+            esar = (
+                (data["achieved_es"] / data["total_es"]) * 100
+                if data["total_es"] > 0
+                else 0.0
+            )
+            results[key] = {
+                "TCR": tcr,
+                "ESAR": esar,
+                "completed": data["completed_tasks"],
+                "total": data["total_tasks"],
+            }
+        return results
+
+    overall = calculate_aggregates(task_stats)
+    by_category = calculate_aggregates(task_stats, "category")
+    by_level = calculate_aggregates(task_stats, "level")
+
+    print("\n" + "=" * 50)
+    print("EVALUATION RESULTS")
+    print("=" * 50)
+
+    print(f"\nOverall:")
+    data = overall["Overall"]
+    print(
+        f"  Task Success Rate (SR): {data['TCR']:.2f}% ({data['completed']}/{data['total']})"
+    )
+    print(f"  Essential State Achievement Rate (ESAR): {data['ESAR']:.2f}%")
+
+    print(f"\nBy Category:")
+    print(f"  {'Category':<20} | {'SR':<10} | {'ESAR':<10} | {'Count':<10}")
+    print(f"  {'-'*20} | {'-'*10} | {'-'*10} | {'-'*10}")
+    for cat, data in sorted(by_category.items()):
+        print(
+            f"  {cat:<20} | {data['TCR']:6.2f}%   | {data['ESAR']:6.2f}%   | {data['total']:<10}"
+        )
+
+    print(f"\nBy Level:")
+    print(f"  {'Level':<20} | {'SR':<10} | {'ESAR':<10} | {'Count':<10}")
+    print(f"  {'-'*20} | {'-'*10} | {'-'*10} | {'-'*10}")
+    for lvl, data in sorted(by_level.items()):
+        print(
+            f"  {lvl:<20} | {data['TCR']:6.2f}%   | {data['ESAR']:6.2f}%   | {data['total']:<10}"
+        )
+    print("\n" + "=" * 50)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Detailed evaluation generator for Agent Trajectories"
@@ -317,6 +474,9 @@ if __name__ == "__main__":
     if config.get("eval", {}).get("base_url"):
         logger.info("Starting inference...")
         eval_items = run_inference(eval_items, config)
+
+        # Run Evaluation Metrics Calculation
+        evaluate_metrics(eval_items)
     else:
         logger.info("Skipping inference (no base_url configured)")
 
