@@ -55,12 +55,6 @@ python scripts/infer.py --config <config-file>
 
 The config file for infer is in `configs/eval.yaml`. The infer results will be saved at `eval_results.jsonl` inside the `data_dir` specified in the config file.
 
-Then run the following command to get the final A3 scores.
-
-```shell
-python scripts/eval.py -f <path to eval_results.jsonl>
-```
-
 <details>
 <summary><h3>Advanced Usage (detailed features)</h3></summary>
 
