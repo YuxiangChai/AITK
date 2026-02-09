@@ -1,4 +1,16 @@
-# AITK
+<h1 align="center">AITK</h1>
+
+<p align="center">
+    <a href="https://yxchai.com/Android-Agent-Arena/">
+        <img src="https://img.shields.io/badge/🏆_Leaderboard-A3-FFD700?style=for-the-badge" alt="A3 Leaderboard">
+    </a>
+    <a href="https://huggingface.co/Yuxiang007/A3RM">
+        <img src="https://img.shields.io/badge/🤗_HuggingFace-A3RM-FF9D00?style=for-the-badge" alt="HuggingFace">
+    </a>
+    <a href="https://arxiv.org/abs/2501.01149">
+        <img src="https://img.shields.io/badge/📄_Paper-ArXiv-B31B1B?style=for-the-badge" alt="A3 Paper">
+    </a>
+</p>
 
 Android Interactive Toolkit for Emulators. This repository is originally developed for the paper [A3](https://arxiv.org/abs/2501.01149). It is lightweight and designed to let any MLLM-based agent or human annotator interact with the Android emulator (AVD), perform tasks, and save comprehensive trajectory data. It can be used to test agents and collect trajectory data. Since it is extremely flexible and extensible, we decided to release it as a data collection and testing tool for the community. We provide an AVD image for A3 evaluation, however, you can also use this repo to create your own AVD image and test your agents.
 
