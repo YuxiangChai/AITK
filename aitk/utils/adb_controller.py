@@ -65,36 +65,39 @@ class ADBController:
             raise Exception(f"Failed to get XML: {e}")
 
     def _get_current_package_activity(self) -> tuple[str, str]:
-        """
-        Get the current running package using ADB
+        """Get the currently focused package and activity using ADB.
+
+        Uses ``dumpsys window`` to read ``mCurrentFocus`` / ``mFocusedApp``
+        which reliably reports the foreground window, not background tasks.
 
         Returns:
-            str: the current package name
+            (package, activity) tuple.
         """
-        cmd = [
-            "adb",
-            "shell",
-            "dumpsys",
-            "activity",
-            "top",
-            "|",
-            "grep",
-            "ACTIVITY",
-        ]
+        cmd = ["adb", "shell", "dumpsys", "window"]
         try:
             result = subprocess.run(
                 cmd, capture_output=True, text=True, check=True, encoding="utf-8"
             )
-            output = result.stdout.strip()
-            activities = output.split("ACTIVITY")
-            if len(activities) == 2:
-                return "com.google.android.apps.nexuslauncher", ".NexusLauncherActivity"
-            for activity in activities:
-                if "nexus" in activity.lower() or activity == "":
+            output = result.stdout
+
+            # Try mCurrentFocus first (most accurate for the visible window).
+            # Format: mCurrentFocus=Window{... u0 com.pkg/com.pkg.Activity}
+            for line in output.splitlines():
+                line = line.strip()
+                if "mCurrentFocus" not in line and "mFocusedApp" not in line:
                     continue
-                package_activity_str = activity.strip().split(" ")[0]
-                package, activity = package_activity_str.split("/")
-                return package, activity
+
+                # Extract "package/activity" from the line
+                # mCurrentFocus=Window{3553291 u0 com.supercook.app/com.supercook.app.MainActivity}
+                # mFocusedApp=ActivityRecord{5baa84e u0 com.supercook.app/.MainActivity t9}
+                m = re.search(r"([\w.]+)/([\w.]+)", line)
+                if m:
+                    package = m.group(1)
+                    activity = m.group(2)
+                    # Handle shorthand like ".MainActivity" → expand with package
+                    if activity.startswith("."):
+                        activity = package + activity
+                    return package, activity
 
         except subprocess.CalledProcessError as e:
             self.logger.info(f"Can't get current package and activity. {e}")
