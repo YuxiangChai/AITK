@@ -51,7 +51,14 @@ class AVDManager:
 
     def _modify_avd_ini_file(self, avd_name: str = "A3V2") -> None:
         avd_init = self.avd_root_dir / f"{avd_name}.ini"
-        new_init_content = f"avd.ini.encoding=UTF-8\npath={self.avd_root_dir / f'{avd_name}.avd'}\npath.rel=avd/{avd_name}.avd\ntarget=android-35"
+        target = "android-35"
+        if avd_init.exists():
+            with open(avd_init, "r") as f:
+                for line in f:
+                    if line.startswith("target="):
+                        target = line.removeprefix("target=").strip()
+                        break
+        new_init_content = f"avd.ini.encoding=UTF-8\npath={self.avd_root_dir / f'{avd_name}.avd'}\npath.rel=avd/{avd_name}.avd\ntarget={target}"
         with open(avd_init, "w") as f:
             f.write(new_init_content)
         self.logger.info(f"AVD init file '{avd_init}' modified.")
@@ -73,10 +80,6 @@ class AVDManager:
                     lines[i] = f"hw.cpu.arch=arm64\n"
                 else:
                     lines[i] = f"hw.cpu.arch=x86_64\n"
-            elif line.startswith("image.sysdir.1="):
-                lines[i] = (
-                    f"image.sysdir.1={Path('system-images') / 'android-35' / 'google_apis_playstore' / self.device_arch}\n"
-                )
             elif line.startswith("skin.path="):
                 lines[i] = f"skin.path={self.sdk_dir / 'skins' / 'pixel_7'}\n"
 
@@ -96,14 +99,6 @@ class AVDManager:
                 lines[i] = (
                     f"disk.cachePartition.path={self.avd_root_dir / '..' / 'avd' / f'{avd_name}.avd' / 'cache.img'}\n"
                 )
-            elif line.startswith("kernel.path="):
-                lines[i] = f"{self.arc_dir / 'kernel-ranchu'}\n"
-            elif line.startswith("disk.ramdisk.path="):
-                lines[i] = f"{self.arc_dir / 'ramdisk.img'}\n"
-            elif line.startswith("disk.systemPartition.initPath="):
-                lines[i] = f"{self.arc_dir / 'system.img'}\n"
-            elif line.startswith("disk.vendorPartition.initPath="):
-                lines[i] = f"{self.arc_dir / 'vendor.img'}\n"
             elif line.startswith("disk.dataPartition.path="):
                 lines[i] = (
                     f"{self.avd_root_dir / '..' / 'avd' / f'{avd_name}.avd' / 'userdata-qemu.img'}\n"
